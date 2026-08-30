@@ -28,7 +28,7 @@ export const StatCard = ({ title, value, subtitle, icon: Icon, change, trend = '
   const scheme = colorMap[color] || colorMap.brand;
 
   return (
-    <div className="p-5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm group">
+    <div className="p-5 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 shadow-[0_8px_24px_rgba(15,23,42,0.04)] hover:shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition-all duration-200 backdrop-blur-sm group">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
           {title}

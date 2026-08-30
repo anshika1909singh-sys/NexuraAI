@@ -44,28 +44,24 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
   const navLinksByRole = {
     student: [
-      { id: 'dashboard', label: 'Dashboard', icon: Layers },
-      { id: 'opportunities', label: 'Opportunities & Jobs', icon: Briefcase },
-      { id: 'assessment', label: 'AI Skill Assessment', icon: Sparkles, badge: 'AI' },
-      { id: 'roadmap', label: 'Personalized Roadmap', icon: Compass },
-      { id: 'skills', label: 'Skills & Projects', icon: Award },
-      { id: 'campus', label: 'Campus & Faculty', icon: Users },
+      { id: 'opportunities', label: 'Opportunities', icon: Briefcase },
+      { id: 'assessment', label: 'Assessment', icon: Sparkles, badge: 'AI' },
+      { id: 'roadmap', label: 'Roadmap', icon: Compass },
+      { id: 'skills', label: 'Skills', icon: Award },
+      { id: 'campus', label: 'Campus', icon: Users },
     ],
     industry: [
-      { id: 'industry_dashboard', label: 'Recruiter Dashboard', icon: Layers },
-      { id: 'industry_candidates', label: 'AI Talent Radar', icon: Sparkles, badge: 'AI Match' },
-      { id: 'industry_post', label: 'Manage Postings', icon: Briefcase },
-      { id: 'industry_fdp', label: 'FDPs & Workshops', icon: BookOpenCheck },
+      { id: 'industry_candidates', label: 'Talent Radar', icon: Sparkles, badge: 'AI' },
+      { id: 'industry_post', label: 'Postings', icon: Briefcase },
+      { id: 'industry_fdp', label: 'FDPs', icon: BookOpenCheck },
     ],
     university: [
-      { id: 'university_dashboard', label: 'Campus Dashboard', icon: Layers },
-      { id: 'university_drives', label: 'Post Drives & Events', icon: Landmark },
-      { id: 'university_analytics', label: 'Batch Analytics', icon: BarChart3 },
+      { id: 'university_drives', label: 'Drives', icon: Landmark },
+      { id: 'university_analytics', label: 'Analytics', icon: BarChart3 },
     ],
     faculty: [
-      { id: 'faculty_dashboard', label: 'Faculty Hub', icon: Layers },
-      { id: 'faculty_mentorship', label: 'Student Guidance Desk', icon: Users, badge: '3' },
-      { id: 'faculty_fdp', label: 'Industry FDP Programs', icon: BookOpenCheck },
+      { id: 'faculty_mentorship', label: 'Guidance', icon: Users, badge: '3' },
+      { id: 'faculty_fdp', label: 'FDPs', icon: BookOpenCheck },
     ],
   };
 
@@ -96,21 +92,30 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
   const currentNotifications = currentRole ? roleNotifications[currentRole] || [] : [];
   const ActiveRoleIcon = currentRole && roleMeta[currentRole] ? roleMeta[currentRole].icon : GraduationCap;
 
+  const dashboardTabByRole = {
+    student: 'dashboard',
+    industry: 'industry_dashboard',
+    university: 'university_dashboard',
+    faculty: 'faculty_dashboard',
+  };
+
   const handleLogoClick = () => {
     if (!currentUser) return;
-    if (currentRole === 'student') setActiveTab('dashboard');
-    else if (currentRole === 'industry') setActiveTab('industry_dashboard');
-    else if (currentRole === 'university') setActiveTab('university_dashboard');
-    else if (currentRole === 'faculty') setActiveTab('faculty_dashboard');
+    setActiveTab(dashboardTabByRole[currentRole] || 'dashboard');
+  };
+
+  const handleDashboardNavigate = () => {
+    setActiveTab(dashboardTabByRole[currentRole] || 'dashboard');
+    setProfileDropdownOpen(false);
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
+    <header className="sticky top-0 z-40 transition-colors bg-white dark:bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 sm:h-24">
+        <div className="flex items-center gap-3 sm:gap-4 h-16 sm:h-18">
           
           {/* Left: Brand Logo & Tagline */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0 shrink-0">
             <button
               onClick={handleLogoClick}
               className="flex items-center gap-3 group text-left focus:outline-none"
@@ -136,7 +141,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               <div className="relative ml-2 sm:ml-4">
                 <button
                   onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold shadow-sm transition-all hover:scale-105 ${
+                  className={`flex items-center gap-2 px-2.5 py-1.5 rounded-full border text-[11px] sm:text-xs font-semibold shadow-sm transition-all hover:scale-[1.02] ${
                     roleMeta[currentRole]?.color || 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200'
                   }`}
                   title="Switch Demo Persona"
@@ -144,7 +149,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   <ActiveRoleIcon className="w-3.5 h-3.5" />
                   <span className="hidden md:inline">{roleMeta[currentRole]?.label || 'Role'}</span>
                   <span className="md:hidden capitalize">{currentRole}</span>
-                  <ChevronDown className="w-3 h-3 opacity-70" />
+                  <ChevronDown className="w-3.5 h-3.5 opacity-70" />
                 </button>
 
                 {/* Role Switcher Menu */}
@@ -204,7 +209,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
 
           {/* Center: Desktop Navigation Links */}
           {currentUser && (
-            <nav className="hidden lg:flex items-center gap-1.5 bg-slate-100/60 dark:bg-slate-800/40 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-sm">
+            <nav className="hidden lg:flex flex-1 items-center justify-center min-w-0 max-w-[760px] gap-1">
               {currentNavLinks.map((link) => {
                 const isActive = activeTab === link.id;
                 const LinkIcon = link.icon;
@@ -212,13 +217,13 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   <button
                     key={link.id}
                     onClick={() => setActiveTab(link.id)}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all relative ${
+                    className={`flex items-center gap-2 px-2.5 sm:px-3 py-2 rounded-lg text-[13px] font-semibold transition-all relative whitespace-nowrap ${
                       isActive
-                        ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm border border-slate-200/50 dark:border-slate-700/50 font-bold'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
+                        ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm border border-slate-200/60 dark:border-slate-700/60 font-bold'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60'
                     }`}
                   >
-                    <LinkIcon className="w-3.5 h-3.5" />
+                    <LinkIcon className="w-4 h-4" />
                     <span>{link.label}</span>
                     {link.badge && (
                       <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-brand-500 text-white leading-none">
@@ -232,7 +237,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
           )}
 
           {/* Right: Theme Toggle, Notifications & User Menu */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
             
             {/* Theme Toggle Button */}
             <button
@@ -351,13 +356,20 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                       </div>
                       <div className="py-1">
                         <button
+                          onClick={handleDashboardNavigate}
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                        >
+                          <Layers className="w-4 h-4 text-slate-400" />
+                          Dashboard
+                        </button>
+                        <button
                           onClick={() => {
                             setActiveTab('profile');
                             setProfileDropdownOpen(false);
                           }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
                         >
-                          <User className="w-3.5 h-3.5 text-slate-400" />
+                          <User className="w-4 h-4 text-slate-400" />
                           View Profile & Badges
                         </button>
                         <button
@@ -365,9 +377,9 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                             setActiveTab('settings');
                             setProfileDropdownOpen(false);
                           }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
                         >
-                          <Settings className="w-3.5 h-3.5 text-slate-400" />
+                          <Settings className="w-4 h-4 text-slate-400" />
                           Settings & Preferences
                         </button>
                       </div>

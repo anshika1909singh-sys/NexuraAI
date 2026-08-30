@@ -11,6 +11,13 @@
   body {
     min-height: 100vh;
     letter-spacing: -0.01em;
+    background: #f4f7fb;
+    color: #0f172a;
+  }
+
+  .dark body {
+    background: #0b1220;
+    color: #e2e8f0;
   }
   .dark * {
     border-color: #1e293b;
@@ -28,6 +35,26 @@
 
   button:not(:disabled):active, [role="button"]:not(:disabled):active {
     transform: scale(0.98);
+  }
+
+  main .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1.25rem !important;
+  }
+
+  main .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1rem !important;
+  }
+
+  main .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.75rem !important;
+  }
+
+  main .gap-8 {
+    gap: 1.5rem !important;
+  }
+
+  main .gap-6 {
+    gap: 1rem !important;
   }
 }
 
