@@ -19,6 +19,25 @@ import {
   ExternalLink
 } from 'lucide-react';
 
+const getInitials = (name = 'User') =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('') || 'U';
+
+const getFallbackAvatar = (name = 'User') => {
+  const initials = getInitials(name);
+  const svg = `
+    <svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'>
+      <rect width='200' height='200' rx='32' fill='#4f46e5'/>
+      <text x='50%' y='55%' text-anchor='middle' dominant-baseline='middle' fill='white' font-size='72' font-family='Arial, sans-serif' font-weight='700'>${initials}</text>
+    </svg>
+  `;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
+
 export const StudentDashboard = ({ setActiveTab }) => {
   const { currentUser } = useAuth();
   const {
@@ -106,8 +125,12 @@ export const StudentDashboard = ({ setActiveTab }) => {
         <div className="px-6 pb-6 relative -mt-12 sm:-mt-14">
           <div className="flex flex-col items-start gap-4">
             <img
-              src={currentUser?.avatar || currentUser?.logo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+              src={currentUser?.avatar || currentUser?.logo || getFallbackAvatar(currentUser?.name || 'Anshika Sharma')}
               alt={currentUser?.name || 'Anshika Sharma'}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = getFallbackAvatar(currentUser?.name || 'Anshika Sharma');
+              }}
               className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl object-cover ring-4 ring-white dark:ring-slate-900 shadow-2xl bg-white shrink-0"
             />
 

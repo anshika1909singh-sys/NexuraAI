@@ -21,6 +21,25 @@ import {
   Briefcase
 } from 'lucide-react';
 
+const getInitials = (name = 'User') =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('') || 'U';
+
+const getFallbackAvatar = (name = 'User') => {
+  const initials = getInitials(name);
+  const svg = `
+    <svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'>
+      <rect width='200' height='200' rx='32' fill='#4f46e5'/>
+      <text x='50%' y='55%' text-anchor='middle' dominant-baseline='middle' fill='white' font-size='72' font-family='Arial, sans-serif' font-weight='700'>${initials}</text>
+    </svg>
+  `;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
+
 export const StudentProfile = () => {
   const { currentUser, currentRole, updateProfile } = useAuth();
   const { capabilityProjects, assessmentResult, opportunities, fdpPrograms } = useData();
@@ -79,9 +98,12 @@ export const StudentProfile = () => {
         <div className="px-6 sm:px-10 pb-8 relative -mt-16 sm:-mt-20">
           <div className="flex flex-col items-start gap-4">
             <img
-              src={currentUser?.avatar || currentUser?.logo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-              alt={currentUser?.name}
-              className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover ring-4 ring-white dark:ring-slate-900 shadow-2xl bg-white shrink-0"
+                src={currentUser?.avatar || currentUser?.logo || getFallbackAvatar(currentUser?.name || 'Anshika Sharma')}
+                alt={currentUser?.name}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = getFallbackAvatar(currentUser?.name || 'Anshika Sharma');
+                }}
             />
 
             <div className="w-full space-y-3">

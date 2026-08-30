@@ -379,7 +379,7 @@ export const SKILL_MODULES = [
     duration: '35 Hours',
     rating: 4.95,
     enrolled: 4320,
-    thumbnail: 'https://images.unsplash.com/photo-1516116211227-bbc1b088e5d0?w=400&auto=format&fit=crop&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=400&auto=format&fit=crop&q=80',
     description: 'Master Graphs, Dynamic Programming, Segment Trees, Trie structures, and high-frequency interview patterns.',
     skillsGained: ['Graph Algorithms', 'Dynamic Programming', 'Complexity Optimization', 'System Design'],
     projectIncluded: 'Optimal Route Pathfinder & Visualizer'
