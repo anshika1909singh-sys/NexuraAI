@@ -248,22 +248,21 @@ export const FacultyDashboard = ({ activeTab: navActiveTab, setActiveTab: setNav
                   {candidatePool.slice(0, 4).map((st) => (
                     <div
                       key={st.id}
-                      className="p-3.5 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between gap-3"
+                      className="p-3.5 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-200/60 dark:border-slate-700/60 flex flex-col gap-2.5"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <img
-                          src={st.avatar}
-                          alt={st.name}
-                          className="w-10 h-10 rounded-xl object-cover ring-2 ring-brand-500/20"
-                        />
-                        <div>
-                          <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                            {st.name}
-                          </h4>
-                          <p className="text-[10px] text-slate-400">
-                            {st.department} • CGPA {st.cgpa}
-                          </p>
-                        </div>
+                      <img
+                        src={st.avatar}
+                        alt={st.name}
+                        className="w-10 h-10 rounded-xl object-cover ring-2 ring-brand-500/20"
+                      />
+
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                          {st.name}
+                        </h4>
+                        <p className="text-[10px] text-slate-400">
+                          {st.department} • CGPA {st.cgpa}
+                        </p>
                       </div>
 
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">

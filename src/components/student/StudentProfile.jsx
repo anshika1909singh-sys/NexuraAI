@@ -77,39 +77,42 @@ export const StudentProfile = () => {
 
         {/* Profile Card Body */}
         <div className="px-6 sm:px-10 pb-8 relative -mt-16 sm:-mt-20">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-5">
-              <img
-                src={currentUser?.avatar || currentUser?.logo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                alt={currentUser?.name}
-                className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover ring-4 ring-white dark:ring-slate-900 shadow-2xl bg-white shrink-0"
-              />
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-black font-display text-slate-900 dark:text-white">
-                    {currentUser?.name}
-                  </h2>
-                  <span className="p-1 rounded-full bg-brand-500/10 text-brand-500" title="Verified Badge">
-                    <ShieldCheck className="w-5 h-5" />
-                  </span>
-                </div>
-                <p className="text-xs sm:text-sm text-brand-600 dark:text-brand-400 font-semibold">
-                  {currentUser?.headline || currentUser?.position || currentUser?.designation || (currentUser?.company ? `Recruiter at ${currentUser.company}` : 'Nexura Member')}
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-2">
-                  <span>{currentUser?.college || currentUser?.company || 'Apex Institute'}</span>
-                  <span>•</span>
-                  <span>{currentUser?.department || currentUser?.location || 'New Delhi, India'}</span>
-                  <span>•</span>
-                  <span>{currentUser?.email}</span>
-                </p>
-              </div>
-            </div>
+          <div className="flex flex-col items-start gap-4">
+            <img
+              src={currentUser?.avatar || currentUser?.logo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+              alt={currentUser?.name}
+              className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover ring-4 ring-white dark:ring-slate-900 shadow-2xl bg-white shrink-0"
+            />
 
-            {/* Persona Badge */}
-            <div className={`p-3 rounded-2xl border text-xs font-bold flex items-center gap-2 ${roleBadge.color}`}>
-              <RoleIcon className="w-4 h-4" />
-              <span>{roleBadge.label}</span>
+            <div className="w-full space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-2xl font-black font-display text-slate-900 dark:text-white">
+                      {currentUser?.name}
+                    </h2>
+                    <span className="p-1 rounded-full bg-brand-500/10 text-brand-500" title="Verified Badge">
+                      <ShieldCheck className="w-5 h-5" />
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-brand-600 dark:text-brand-400 font-semibold">
+                    {currentUser?.headline || currentUser?.position || currentUser?.designation || (currentUser?.company ? `Recruiter at ${currentUser.company}` : 'Nexura Member')}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-2">
+                    <span>{currentUser?.college || currentUser?.company || 'Apex Institute'}</span>
+                    <span>•</span>
+                    <span>{currentUser?.department || currentUser?.location || 'New Delhi, India'}</span>
+                    <span>•</span>
+                    <span>{currentUser?.email}</span>
+                  </p>
+                </div>
+
+                {/* Persona Badge */}
+                <div className={`p-3 rounded-2xl border text-xs font-bold flex items-center gap-2 w-fit ${roleBadge.color}`}>
+                  <RoleIcon className="w-4 h-4" />
+                  <span>{roleBadge.label}</span>
+                </div>
+              </div>
             </div>
           </div>
 

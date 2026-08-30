@@ -157,25 +157,24 @@ export const IndustryDashboard = ({ setActiveTab }) => {
               {candidatePool.slice(0, 3).map((cand) => (
                 <div
                   key={cand.id}
-                  className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between gap-3"
+                  className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col gap-2.5"
                 >
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={cand.avatar}
-                      alt={cand.name}
-                      className="w-10 h-10 rounded-xl object-cover ring-2 ring-brand-500/20 shrink-0"
-                    />
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                        {cand.name}
-                      </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        {cand.college}
-                      </p>
-                    </div>
+                  <img
+                    src={cand.avatar}
+                    alt={cand.name}
+                    className="w-10 h-10 rounded-xl object-cover ring-2 ring-brand-500/20 shrink-0"
+                  />
+
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                      {cand.name}
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {cand.college}
+                    </p>
                   </div>
 
-                  <div className="text-right shrink-0">
+                  <div className="shrink-0">
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                       {cand.aiScore}% AI Rating
                     </span>
