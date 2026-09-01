@@ -1,88 +1,145 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { INITIAL_USERS } from '../data/mockData';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { apiRequest } from '../api/api';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
-
   const [currentRole, setCurrentRole] = useState(null);
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState('login'); // 'login' | 'signup'
+  const [authModalMode, setAuthModalMode] = useState('login');
   const [authModalRole, setAuthModalRole] = useState('student');
 
+  // Restore login session when the app starts
   useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('nexura_user', JSON.stringify(currentUser));
-      setCurrentRole(currentUser.role);
-    } else {
-      localStorage.removeItem('nexura_user');
-      setCurrentRole(null);
-    }
-  }, [currentUser]);
+    const savedUser = localStorage.getItem('nexura_user');
+    const savedToken = localStorage.getItem('nexura_token');
 
-  // Fast demo role switcher
-  const switchRole = (role) => {
-    if (INITIAL_USERS[role]) {
-      setCurrentUser(INITIAL_USERS[role]);
-      setCurrentRole(role);
-    }
-  };
+    if (savedUser && savedToken) {
+      try {
+        const user = JSON.parse(savedUser);
 
-  const login = (email, password, role) => {
-    // Check preset or generate custom session
-    if (role && INITIAL_USERS[role]) {
-      const user = { ...INITIAL_USERS[role], email: email || INITIAL_USERS[role].email };
-      setCurrentUser(user);
-      setCurrentRole(role);
+        setCurrentUser(user);
+        setCurrentRole(user.role);
+      } catch (error) {
+        console.error('Failed to restore user session:', error);
+
+        localStorage.removeItem('nexura_user');
+        localStorage.removeItem('nexura_token');
+      }
+    }
+  }, []);
+
+  // Login using backend
+  const login = async (email, password, role) => {
+    try {
+      const data = await apiRequest('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      // Make sure the selected frontend role matches
+      // the role stored in the database.
+      if (role && data.user.role !== role) {
+        return {
+          success: false,
+          message: `This account is registered as ${data.user.role}.`,
+        };
+      }
+
+      localStorage.setItem('nexura_token', data.token);
+      localStorage.setItem('nexura_user', JSON.stringify(data.user));
+
+      setCurrentUser(data.user);
+      setCurrentRole(data.user.role);
       setAuthModalOpen(false);
-      return { success: true, user };
+
+      return {
+        success: true,
+        user: data.user,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
     }
-    // Fallback generic
-    const fallbackUser = {
-      id: 'usr_' + Date.now(),
-      name: email.split('@')[0] || 'User',
-      email,
-      role: role || 'student',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      ...(INITIAL_USERS[role || 'student'] || {})
-    };
-    setCurrentUser(fallbackUser);
-    setCurrentRole(role || 'student');
-    setAuthModalOpen(false);
-    return { success: true, user: fallbackUser };
   };
 
-  const signup = (formData) => {
-    const role = formData.role || 'student';
-    const baseTemplate = INITIAL_USERS[role] || {};
-    const newUser = {
-      ...baseTemplate,
-      id: 'usr_' + Date.now(),
-      name: formData.name,
-      email: formData.email,
-      role: role,
-      college: formData.college || baseTemplate.college || 'Apex Institute of Technology',
-      company: formData.company || baseTemplate.company || 'Enterprise Partner',
-      department: formData.department || baseTemplate.department || 'Engineering',
-      avatar: baseTemplate.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    };
-    setCurrentUser(newUser);
-    setCurrentRole(role);
-    setAuthModalOpen(false);
-    return { success: true, user: newUser };
+  // Register using backend
+  const signup = async (formData) => {
+    try {
+      const role = formData.role || 'student';
+
+      // Admin cannot register
+      if (role === 'admin') {
+        return {
+          success: false,
+          message: 'Admin accounts cannot be registered publicly.',
+        };
+      }
+
+      const data = await apiRequest('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role,
+        }),
+      });
+
+      /*
+       * Registration creates the account.
+       *
+       * We do NOT automatically log the user in here.
+       * The user will need to log in with their new credentials.
+       */
+      setAuthModalMode('login');
+
+      return {
+        success: true,
+        user: data.user,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
   };
 
   const logout = () => {
+    localStorage.removeItem('nexura_token');
+    localStorage.removeItem('nexura_user');
+
     setCurrentUser(null);
     setCurrentRole(null);
   };
 
+  /*
+   * Profile update is temporarily local.
+   *
+   * We will connect this to:
+   * PATCH /api/users/me
+   *
+   * when we build the User Profile API.
+   */
   const updateProfile = (fields) => {
     setCurrentUser((prev) => {
-      const updated = { ...prev, ...fields };
+      if (!prev) return prev;
+
+      const updated = {
+        ...prev,
+        ...fields,
+      };
+
       localStorage.setItem('nexura_user', JSON.stringify(updated));
+
       return updated;
     });
   };
@@ -102,7 +159,6 @@ export const AuthProvider = ({ children }) => {
       value={{
         currentUser,
         currentRole,
-        switchRole,
         login,
         signup,
         logout,
