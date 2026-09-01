@@ -71,6 +71,17 @@ export const INITIAL_USERS = {
     completedFDPs: 5,
     researchAreas: ['Generative AI', 'Distributed Neural Training', 'Computer Vision'],
     bio: 'Academic researcher and student mentor with 12+ years of experience guiding UG/PG projects into published research and top-tier industry placements.'
+  },
+  admin: {
+    id: 'usr_admin_999',
+    name: 'Platform Administrator',
+    role: 'admin',
+    email: 'admin@nexura.ai',
+    designation: 'System Administrator',
+    college: 'Nexura AI Platform',
+    location: 'Global Operations Center',
+    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
+    bio: 'Full visibility into student, faculty, recruiter, and campus activity across the platform.'
   }
 };
 

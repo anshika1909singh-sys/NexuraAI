@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../common/Modal';
-import { GraduationCap, Building2, Landmark, BookOpenCheck, ArrowRight, Sparkles, Check } from 'lucide-react';
+import { GraduationCap, Building2, Landmark, BookOpenCheck, ArrowRight, Sparkles, Check, ShieldCheck } from 'lucide-react';
 import { INITIAL_USERS } from '../../data/mockData';
 
 export const AuthModal = () => {
@@ -23,7 +23,7 @@ export const AuthModal = () => {
     setSelectedRole(authModalRole || 'student');
   }, [authModalMode, authModalRole]);
 
-  const roles = [
+  const demoRoles = [
     {
       id: 'student',
       label: 'Student',
@@ -54,13 +54,29 @@ export const AuthModal = () => {
     }
   ];
 
+  const loginRoles = [
+    ...demoRoles,
+    {
+      id: 'admin',
+      label: 'Admin',
+      desc: 'Platform Oversight & Monitoring',
+      icon: ShieldCheck,
+      color: 'border-violet-500/40 bg-violet-500/10 text-violet-600 dark:text-violet-400'
+    }
+  ];
+
+  const roles = demoRoles;
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
 
     if (isLogin) {
-      const email = formData.email || INITIAL_USERS[selectedRole]?.email || 'demo@nexura.ai';
-      login(email, formData.password, selectedRole);
+      const rawEmail = (formData.email || '').trim().toLowerCase();
+      const adminEmail = 'admin@nexura.ai';
+      const email = rawEmail || INITIAL_USERS[selectedRole]?.email || 'demo@nexura.ai';
+      const roleToLogin = rawEmail === adminEmail ? 'admin' : selectedRole;
+      login(email, formData.password, roleToLogin);
     } else {
       if (!formData.name || !formData.email) {
         setError('Please provide your name and email');
@@ -121,7 +137,7 @@ export const AuthModal = () => {
             </span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {roles.map((r) => {
+            {demoRoles.map((r) => {
               const IconComp = r.icon;
               return (
                 <button
@@ -144,7 +160,7 @@ export const AuthModal = () => {
             Select Your Ecosystem Role
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {roles.map((role) => {
+            {(isLogin ? loginRoles : roles).map((role) => {
               const Icon = role.icon;
               const isSelected = selectedRole === role.id;
               return (

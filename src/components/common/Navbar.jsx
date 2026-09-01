@@ -23,7 +23,8 @@ import {
   Users,
   Check,
   Calendar,
-  BarChart3
+  BarChart3,
+  ShieldCheck
 } from 'lucide-react';
 
 export const Navbar = ({ activeTab, setActiveTab }) => {
@@ -40,6 +41,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     industry: { label: 'Industry Recruiter', color: 'bg-brand-500/10 text-brand-600 dark:text-brand-400 border-brand-500/30', icon: Building2 },
     university: { label: 'University Admin', color: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/30', icon: Landmark },
     faculty: { label: 'Faculty Mentor', color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30', icon: BookOpenCheck },
+    admin: { label: 'Admin', color: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/30', icon: ShieldCheck },
   };
 
   const navLinksByRole = {
@@ -62,6 +64,9 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     faculty: [
       { id: 'faculty_mentorship', label: 'Guidance', icon: Users, badge: '3' },
       { id: 'faculty_fdp', label: 'FDPs', icon: BookOpenCheck },
+    ],
+    admin: [
+      { id: 'admin_dashboard', label: 'Overview', icon: BarChart3 },
     ],
   };
 
@@ -97,6 +102,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     industry: 'industry_dashboard',
     university: 'university_dashboard',
     faculty: 'faculty_dashboard',
+    admin: 'admin_dashboard',
   };
 
   const handleLogoClick = () => {
@@ -180,7 +186,9 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                                     ? 'industry_dashboard'
                                     : roleKey === 'university'
                                     ? 'university_dashboard'
-                                    : 'faculty_dashboard'
+                                    : roleKey === 'faculty'
+                                    ? 'faculty_dashboard'
+                                    : 'admin_dashboard'
                                 );
                               }}
                               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${

@@ -28,6 +28,9 @@ import { UniversityAnalytics } from './components/university/UniversityAnalytics
 // Faculty Views
 import { FacultyDashboard } from './components/faculty/FacultyDashboard';
 
+// Admin Views
+import { AdminDashboard } from './components/admin/AdminDashboard';
+
 // Settings
 import { SettingsPage } from './components/settings/SettingsPage';
 
@@ -102,6 +105,17 @@ export function App() {
           return <FacultyDashboard activeTab={activeTab} setActiveTab={setActiveTab} />;
         default:
           return <FacultyDashboard activeTab={activeTab} setActiveTab={setActiveTab} />;
+      }
+    }
+
+    // Admin Role Views
+    if (currentRole === 'admin') {
+      switch (activeTab) {
+        case 'admin_dashboard':
+        case 'dashboard':
+          return <AdminDashboard />;
+        default:
+          return <AdminDashboard />;
       }
     }
 
