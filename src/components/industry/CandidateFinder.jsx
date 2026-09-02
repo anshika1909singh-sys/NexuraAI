@@ -371,7 +371,7 @@ const handleScheduleInterview = async () => {
                 value={interviewDate}
                 onChange={(event) => setInterviewDate(event.target.value)}
                 min={new Date().toISOString().slice(0, 10)}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 aria-label="Interview date"
                 required
               />
@@ -395,7 +395,7 @@ const handleScheduleInterview = async () => {
                 type="time"
                 value={interviewTime}
                 onChange={(event) => setInterviewTime(event.target.value)}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 aria-label="Interview time"
                 required
               />
