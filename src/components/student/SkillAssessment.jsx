@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
-import { getAssessmentQuestions } from '../../services/assessmentService';
 import { Modal } from '../common/Modal';
 
 import {
@@ -38,6 +37,7 @@ export const SkillAssessment = ({ setActiveTab }) => {
   const [assessmentQuestions, setAssessmentQuestions] = useState([]);
   const [assessmentProfile, setAssessmentProfile] = useState(null);
   const [quizFinished, setQuizFinished] = useState(false);
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
 
   // -----------------------------
   // Preference Modal State
@@ -86,7 +86,7 @@ export const SkillAssessment = ({ setActiveTab }) => {
 
   const questionOptions = [10, 20, 30, 40, 50];
 
-  // Current Firebase question
+  // Current generated question
   const currentQ = assessmentQuestions[currentQuestionIdx];
 
   // -----------------------------
@@ -132,51 +132,76 @@ export const SkillAssessment = ({ setActiveTab }) => {
       domain: selectedDomain,
       level,
       experienceYears: Number(experienceYears || 0),
-      experienceMonths: Number(experienceMonths || 0)
+      experienceMonths: Number(experienceMonths || 0),
     };
 
     setAssessmentProfile(profile);
 
     try {
-      // Get questions from Firebase
-      const questions = await getAssessmentQuestions(
-        selectedDomain,
-        level,
-        numQuestions
+      setIsGeneratingQuestions(true);
+
+      // Generate questions dynamically using the secure Vercel API.
+      // The Gemini API key stays on the server and is never exposed to React.
+      const response = await fetch(
+        '/api/generate-assessment',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            domain: selectedDomain,
+            level,
+            numQuestions: Number(numQuestions),
+          }),
+        }
       );
 
-      // No questions available
-      if (questions.length === 0) {
-        alert(
-          `No assessment questions are available for ${selectedDomain} at the ${level} level yet.`
-        );
-        return;
-      }
+      const data = await response.json();
 
-      // Fewer questions than requested
-      if (questions.length < numQuestions) {
-        alert(
-          `Only ${questions.length} questions are available for ${selectedDomain} at the ${level} level.`
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.error ||
+          data.message ||
+          'Failed to generate assessment questions.'
         );
       }
 
-      // Start quiz
-      setAssessmentQuestions(questions);
+      if (
+        !data.questions ||
+        !Array.isArray(data.questions) ||
+        data.questions.length === 0
+      ) {
+        throw new Error(
+          'No assessment questions were generated.'
+        );
+      }
+
+      if (data.questions.length < Number(numQuestions)) {
+        console.warn(
+          `Gemini returned ${data.questions.length} questions instead of ${numQuestions}.`
+        );
+      }
+
+      // Start quiz with the dynamically generated questions.
+      setAssessmentQuestions(data.questions);
       setSelectedAnswers({});
       setCurrentQuestionIdx(0);
       setQuizFinished(false);
       setInQuiz(true);
       setShowPrefModal(false);
-
     } catch (error) {
       console.error(
-        'Error loading assessment questions:',
+        'Error generating assessment questions:',
         error
       );
 
       alert(
-        'Unable to load assessment questions. Please try again.'
+        error.message ||
+        'Unable to generate assessment questions. Please try again.'
       );
+    } finally {
+      setIsGeneratingQuestions(false);
     }
   };
 
@@ -989,12 +1014,21 @@ export const SkillAssessment = ({ setActiveTab }) => {
 
             <button
               onClick={handleStartQuiz}
-              className="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-lg shadow-brand-500/20 transition-all hover:scale-105 flex items-center gap-2"
+              disabled={isGeneratingQuestions}
+              className="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold shadow-lg shadow-brand-500/20 transition-all hover:scale-105 disabled:hover:scale-100 flex items-center gap-2"
             >
 
-              <Sparkles className="w-4 h-4" />
-
-              Start Assessment
+              {isGeneratingQuestions ? (
+                <>
+                  <Sparkles className="w-4 h-4 animate-pulse" />
+                  Generating Questions...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Start Assessment
+                </>
+              )}
 
             </button>
 
