@@ -1,3 +1,4 @@
+import { useAuth } from "./AuthContext";
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   INITIAL_OPPORTUNITIES,
@@ -9,15 +10,18 @@ import {
   FDP_PROGRAMS,
   CANDIDATE_POOL
 } from '../data/mockData';
+import { getOpportunities } from "../services/opportunityService";
+import {
+  applyToOpportunity as createApplication,
+  getStudentApplications,
+} from "../services/applicationService";
 
 const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
+  const { currentUser } = useAuth();
   // Opportunities
-  const [opportunities, setOpportunities] = useState(() => {
-    const saved = localStorage.getItem('nexura_opportunities');
-    return saved ? JSON.parse(saved) : INITIAL_OPPORTUNITIES;
-  });
+  const [opportunities, setOpportunities] = useState([]);
 
   // Applications
   const [applications, setApplications] = useState(() => {
@@ -147,6 +151,19 @@ export const DataProvider = ({ children }) => {
 
   // Persist all state
   useEffect(() => {
+  const loadOpportunities = async () => {
+    try {
+      const data = await getOpportunities();
+      setOpportunities(data);
+    } catch (error) {
+      console.error("Error loading opportunities:", error);
+    }
+  };
+
+  loadOpportunities();
+}, []);
+
+  useEffect(() => {
     localStorage.setItem('nexura_opportunities', JSON.stringify(opportunities));
   }, [opportunities]);
 
@@ -183,27 +200,53 @@ export const DataProvider = ({ children }) => {
   }, [roadmapSteps]);
 
   // Actions
-  const applyToOpportunity = (oppId) => {
-    const opp = opportunities.find((o) => o.id === oppId);
-    if (!opp) return { success: false, message: 'Opportunity not found' };
+  const applyToOpportunity = async (oppId, user) => {
+    if (!user) {
+      return {
+        success: false,
+        message: "Please login to apply.",
+      };
+    }
 
-    const exists = applications.some((a) => a.opportunityId === oppId);
-    if (exists) return { success: false, message: 'You have already applied for this opportunity' };
+    try {
+      const result = await createApplication({
+        opportunityId: oppId,
+        studentId: user.uid,
+      });
 
-    const newApp = {
-      id: 'app_' + Date.now(),
-      opportunityId: oppId,
-      title: opp.title,
-      company: opp.company,
-      appliedDate: new Date().toISOString().split('T')[0],
-      status: 'Applied',
-      step: 1,
-      feedback: 'Application successfully received by the recruitment team. Automatic AI skill match verified.',
-      interviewDate: null
-    };
+      if (result.alreadyApplied) {
+        return {
+          success: false,
+          alreadyApplied: true,
+          message: "You have already applied to this opportunity.",
+        };
+      }
 
-    setApplications((prev) => [newApp, ...prev]);
-    return { success: true, message: `Successfully applied to ${opp.title} at ${opp.company}!` };
+      const newApplication = {
+        id: result.id,
+        opportunityId: oppId,
+        studentId: user.uid,
+        status: "applied",
+        appliedAt: new Date(),
+      };
+
+      setApplications((prev) => [
+        ...prev,
+        newApplication,
+      ]);
+
+      return {
+        success: true,
+        application: newApplication,
+      };
+    } catch (error) {
+      console.error("Application error:", error);
+
+      return {
+        success: false,
+        message: "Unable to submit application.",
+      };
+    }
   };
 
   const postNewOpportunity = (newOpp) => {

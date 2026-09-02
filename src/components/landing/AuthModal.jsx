@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../common/Modal';
-import { GraduationCap, Building2, Landmark, BookOpenCheck, ArrowRight, Sparkles, Check, ShieldCheck } from 'lucide-react';
+import { GraduationCap, Building2, Landmark, BookOpenCheck, ArrowRight, Sparkles, Check, ShieldCheck, Globe } from 'lucide-react';
 import { INITIAL_USERS } from '../../data/mockData';
 
 export const AuthModal = () => {
-  const { authModalOpen, closeAuth, authModalMode, authModalRole, login, signup } = useAuth();
+  const { authModalOpen, closeAuth, authModalMode, authModalRole, login, signup, loginWithGoogle } = useAuth();
   const [isLogin, setIsLogin] = useState(authModalMode === 'login');
   const [selectedRole, setSelectedRole] = useState(authModalRole || 'student');
   const [formData, setFormData] = useState({
@@ -17,6 +17,7 @@ export const AuthModal = () => {
     department: '',
   });
   const [error, setError] = useState('');
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   React.useEffect(() => {
     setIsLogin(authModalMode === 'login');
@@ -90,6 +91,17 @@ export const AuthModal = () => {
     const demoUser = INITIAL_USERS[roleKey];
     if (demoUser) {
       login(demoUser.email, 'password123', roleKey);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError('');
+    setIsGoogleLoading(true);
+    const result = await loginWithGoogle(selectedRole);
+    setIsGoogleLoading(false);
+    
+    if (!result.success) {
+      setError(result.message || 'Google authentication failed');
     }
   };
 
@@ -281,6 +293,19 @@ export const AuthModal = () => {
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
+
+        {/* Google Login Button */}
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          disabled={isGoogleLoading}
+          className="w-full py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Globe className="w-4 h-4" />
+          <span>
+            {isGoogleLoading ? 'Signing in...' : `${isLogin ? 'Continue' : 'Sign up'} with Google`}
+          </span>
+        </button>
       </div>
     </Modal>
   );

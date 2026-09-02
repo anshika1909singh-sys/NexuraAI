@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
+import { useAuth } from "../../context/AuthContext";
 import { Modal } from '../common/Modal';
 import {
   Search,
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react';
 
 export const OpportunitySearch = ({ setActiveTab }) => {
+  const { currentUser } = useAuth();
   const { opportunities, applications, applyToOpportunity } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('All');
@@ -48,24 +50,41 @@ export const OpportunitySearch = ({ setActiveTab }) => {
   });
 
   const handleOpenApply = (opp) => {
+    if (!currentUser) {
+      alert('Please log in to apply for opportunities');
+      return;
+    }
     setSelectedOpportunity(opp);
     setApplyModalOpen(true);
     setApplySuccessMsg('');
   };
 
-  const handleConfirmApply = () => {
-    if (!selectedOpportunity) return;
-    const res = applyToOpportunity(selectedOpportunity.id);
+  const handleConfirmApply = async () => {
+  if (!selectedOpportunity) return;
+
+  console.log("1. Confirm Apply clicked");
+  console.log("2. Selected opportunity:", selectedOpportunity);
+
+  try {
+    const res = await applyToOpportunity(selectedOpportunity.id);
+
+    console.log("3. APPLY RESULT:", res);
+
     if (res.success) {
-      setApplySuccessMsg(res.message);
+      setApplySuccessMsg("Application submitted successfully!");
+
       setTimeout(() => {
         setApplyModalOpen(false);
         setApplySuccessMsg('');
       }, 1800);
     } else {
-      alert(res.message);
+      alert(res.message || "Unable to apply to this opportunity.");
     }
-  };
+  } catch (error) {
+    console.error("4. APPLY ERROR:", error);
+    alert(error.message || "Something went wrong while applying.");
+  }
+};
 
   const isApplied = (oppId) => applications.some((a) => a.opportunityId === oppId);
 

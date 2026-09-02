@@ -1,150 +1,451 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { apiRequest } from '../api/api';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
+  onAuthStateChanged,
+} from "firebase/auth";
+
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+
+import { auth, db } from "../firebase/firebase";
 
 const AuthContext = createContext();
+
+const googleProvider = new GoogleAuthProvider();
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [currentRole, setCurrentRole] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState('login');
-  const [authModalRole, setAuthModalRole] = useState('student');
+  const [authModalMode, setAuthModalMode] = useState("login");
+  const [authModalRole, setAuthModalRole] = useState("student");
 
-  // Restore login session when the app starts
+  /*
+   * ----------------------------------------------------
+   * Restore Firebase authentication session
+   * ----------------------------------------------------
+   */
+
   useEffect(() => {
-    const savedUser = localStorage.getItem('nexura_user');
-    const savedToken = localStorage.getItem('nexura_token');
-
-    if (savedUser && savedToken) {
-      try {
-        const user = JSON.parse(savedUser);
-
-        setCurrentUser(user);
-        setCurrentRole(user.role);
-      } catch (error) {
-        console.error('Failed to restore user session:', error);
-
-        localStorage.removeItem('nexura_user');
-        localStorage.removeItem('nexura_token');
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        setCurrentUser(null);
+        setCurrentRole(null);
+        setLoading(false);
+        return;
       }
-    }
+
+      try {
+        const userRef = doc(db, "users", firebaseUser.uid);
+        const userSnapshot = await getDoc(userRef);
+
+        if (userSnapshot.exists()) {
+          const profile = userSnapshot.data();
+
+          const user = {
+            id: firebaseUser.uid,
+            uid: firebaseUser.uid,
+            name: profile.name || firebaseUser.displayName || "",
+            email: firebaseUser.email,
+            role: profile.role,
+            avatar:
+              profile.avatar ||
+              firebaseUser.photoURL ||
+              null,
+            ...profile,
+          };
+
+          setCurrentUser(user);
+          setCurrentRole(profile.role);
+        } else {
+          /*
+           * Authentication account exists,
+           * but Nexura profile doesn't exist yet.
+           */
+          setCurrentUser({
+            id: firebaseUser.uid,
+            uid: firebaseUser.uid,
+            name: firebaseUser.displayName || "",
+            email: firebaseUser.email,
+            avatar: firebaseUser.photoURL || null,
+            role: null,
+          });
+
+          setCurrentRole(null);
+        }
+      } catch (error) {
+        console.error("Error loading user profile:", error);
+      }
+
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  // Login using backend
-  const login = async (email, password, role) => {
-    try {
-      const data = await apiRequest('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+  /*
+   * ----------------------------------------------------
+   * EMAIL / PASSWORD SIGNUP
+   * ----------------------------------------------------
+   */
 
-      // Make sure the selected frontend role matches
-      // the role stored in the database.
-      if (role && data.user.role !== role) {
+  const signup = async (formData) => {
+    try {
+      const role = formData.role || "student";
+
+      /*
+       * Admin cannot be created through public signup.
+       */
+      if (role === "admin") {
         return {
           success: false,
-          message: `This account is registered as ${data.user.role}.`,
+          message: "Admin accounts cannot be created through signup.",
         };
       }
 
-      localStorage.setItem('nexura_token', data.token);
-      localStorage.setItem('nexura_user', JSON.stringify(data.user));
+      /*
+       * Create Firebase Authentication account.
+       */
+      const userCredential =
+        await createUserWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
 
-      setCurrentUser(data.user);
-      setCurrentRole(data.user.role);
+      const firebaseUser = userCredential.user;
+
+      /*
+       * Create Nexura profile in Firestore.
+       */
+      const userProfile = {
+        name: formData.name,
+        email: formData.email,
+        role: role,
+
+        college: formData.college || "",
+        company: formData.company || "",
+        department: formData.department || "",
+
+        avatar: null,
+
+        authProvider: "password",
+
+        isActive: true,
+
+        createdAt: serverTimestamp(),
+      };
+
+      await setDoc(
+        doc(db, "users", firebaseUser.uid),
+        userProfile
+      );
+
+      /*
+       * Firebase automatically signs the user in
+       * after successful account creation.
+       */
+
       setAuthModalOpen(false);
 
       return {
         success: true,
-        user: data.user,
+        user: {
+          id: firebaseUser.uid,
+          uid: firebaseUser.uid,
+          ...userProfile,
+        },
       };
     } catch (error) {
-      return {
-        success: false,
-        message: error.message,
-      };
-    }
-  };
+      console.error("Signup error:", error);
 
-  // Register using backend
-  const signup = async (formData) => {
-    try {
-      const role = formData.role || 'student';
+      let message = "Unable to create account.";
 
-      // Admin cannot register
-      if (role === 'admin') {
-        return {
-          success: false,
-          message: 'Admin accounts cannot be registered publicly.',
-        };
+      if (error.code === "auth/email-already-in-use") {
+        message = "An account with this email already exists.";
+      } else if (error.code === "auth/invalid-email") {
+        message = "Please enter a valid email address.";
+      } else if (error.code === "auth/weak-password") {
+        message = "Password should be at least 6 characters.";
       }
 
-      const data = await apiRequest('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role,
-        }),
-      });
-
-      /*
-       * Registration creates the account.
-       *
-       * We do NOT automatically log the user in here.
-       * The user will need to log in with their new credentials.
-       */
-      setAuthModalMode('login');
-
-      return {
-        success: true,
-        user: data.user,
-      };
-    } catch (error) {
       return {
         success: false,
-        message: error.message,
+        message,
       };
     }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('nexura_token');
-    localStorage.removeItem('nexura_user');
-
-    setCurrentUser(null);
-    setCurrentRole(null);
   };
 
   /*
-   * Profile update is temporarily local.
-   *
-   * We will connect this to:
-   * PATCH /api/users/me
-   *
-   * when we build the User Profile API.
+   * ----------------------------------------------------
+   * EMAIL / PASSWORD LOGIN
+   * ----------------------------------------------------
    */
-  const updateProfile = (fields) => {
-    setCurrentUser((prev) => {
-      if (!prev) return prev;
 
-      const updated = {
-        ...prev,
-        ...fields,
+  const login = async (email, password, role) => {
+    try {
+      const userCredential =
+        await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+      const firebaseUser = userCredential.user;
+
+      /*
+       * Get Nexura profile.
+       */
+      const userRef = doc(db, "users", firebaseUser.uid);
+      const userSnapshot = await getDoc(userRef);
+
+      if (!userSnapshot.exists()) {
+        await signOut(auth);
+
+        return {
+          success: false,
+          message: "Nexura profile not found.",
+        };
+      }
+
+      const profile = userSnapshot.data();
+
+      /*
+       * Check selected role against database role.
+       */
+      if (role && profile.role !== role) {
+        await signOut(auth);
+
+        return {
+          success: false,
+          message: "Selected role does not match this account.",
+        };
+      }
+
+      const user = {
+        id: firebaseUser.uid,
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        name: profile.name || firebaseUser.displayName || "",
+        avatar:
+          profile.avatar ||
+          firebaseUser.photoURL ||
+          null,
+        ...profile,
       };
 
-      localStorage.setItem('nexura_user', JSON.stringify(updated));
+      setCurrentUser(user);
+      setCurrentRole(profile.role);
+      setAuthModalOpen(false);
 
-      return updated;
-    });
+      return {
+        success: true,
+        user,
+      };
+    } catch (error) {
+      console.error("Login error:", error);
+
+      return {
+        success: false,
+        message: "Invalid email or password.",
+      };
+    }
   };
 
-  const openAuth = (mode = 'login', role = 'student') => {
+  /*
+   * ----------------------------------------------------
+   * GOOGLE LOGIN / SIGNUP
+   * ----------------------------------------------------
+   */
+
+  const loginWithGoogle = async (role = "student") => {
+    try {
+      /*
+       * Admin accounts cannot be created through
+       * public Google authentication.
+       */
+      if (role === "admin") {
+        return {
+          success: false,
+          message: "Admin accounts cannot be created through Google signup.",
+        };
+      }
+
+      /*
+       * Open Google sign-in popup.
+       */
+      const userCredential =
+        await signInWithPopup(auth, googleProvider);
+
+      const firebaseUser = userCredential.user;
+
+      /*
+       * Check whether this Google account already
+       * has a Nexura profile.
+       */
+      const userRef = doc(db, "users", firebaseUser.uid);
+      const userSnapshot = await getDoc(userRef);
+
+      let profile;
+
+      if (userSnapshot.exists()) {
+        /*
+         * Existing Nexura user.
+         */
+        profile = userSnapshot.data();
+
+        /*
+         * Make sure the selected role matches
+         * the role already stored in Nexura.
+         */
+        if (profile.role !== role) {
+          await signOut(auth);
+
+          return {
+            success: false,
+            message: "Selected role does not match this account.",
+          };
+        }
+      } else {
+        /*
+         * New Google user.
+         *
+         * Create Nexura profile.
+         */
+        profile = {
+          name: firebaseUser.displayName || "Nexura User",
+          email: firebaseUser.email,
+          role: role,
+
+          college: "",
+          company: "",
+          department: "",
+
+          avatar: firebaseUser.photoURL || null,
+
+          authProvider: "google",
+
+          isActive: true,
+
+          createdAt: serverTimestamp(),
+        };
+
+        await setDoc(userRef, profile);
+      }
+
+      const user = {
+        id: firebaseUser.uid,
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        name:
+          profile.name ||
+          firebaseUser.displayName ||
+          "Nexura User",
+        avatar:
+          profile.avatar ||
+          firebaseUser.photoURL ||
+          null,
+        ...profile,
+      };
+
+      setCurrentUser(user);
+      setCurrentRole(profile.role);
+      setAuthModalOpen(false);
+
+      return {
+        success: true,
+        user,
+      };
+    } catch (error) {
+      console.error("Google authentication error:", error);
+
+      let message = "Google authentication failed.";
+
+      if (error.code === "auth/popup-closed-by-user") {
+        message = "Google sign-in was cancelled.";
+      } else if (error.code === "auth/popup-blocked") {
+        message = "The Google sign-in popup was blocked by your browser.";
+      } else if (error.code === "auth/account-exists-with-different-credential") {
+        message =
+          "An account already exists with this email using another sign-in method.";
+      }
+
+      return {
+        success: false,
+        message,
+      };
+    }
+  };
+
+  /*
+   * ----------------------------------------------------
+   * LOGOUT
+   * ----------------------------------------------------
+   */
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+
+      setCurrentUser(null);
+      setCurrentRole(null);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  /*
+   * ----------------------------------------------------
+   * UPDATE PROFILE
+   * ----------------------------------------------------
+   */
+
+  const updateProfile = async (fields) => {
+    if (!auth.currentUser) {
+      return;
+    }
+
+    try {
+      await setDoc(
+        doc(db, "users", auth.currentUser.uid),
+        fields,
+        {
+          merge: true,
+        }
+      );
+
+      setCurrentUser((prev) => ({
+        ...prev,
+        ...fields,
+      }));
+    } catch (error) {
+      console.error("Profile update error:", error);
+    }
+  };
+
+  /*
+   * ----------------------------------------------------
+   * AUTH MODAL
+   * ----------------------------------------------------
+   */
+
+  const openAuth = (mode = "login", role = "student") => {
     setAuthModalMode(mode);
     setAuthModalRole(role);
     setAuthModalOpen(true);
@@ -159,13 +460,19 @@ export const AuthProvider = ({ children }) => {
       value={{
         currentUser,
         currentRole,
+        loading,
+
         login,
         signup,
+        loginWithGoogle,
         logout,
+
         updateProfile,
+
         authModalOpen,
         authModalMode,
         authModalRole,
+
         openAuth,
         closeAuth,
       }}
