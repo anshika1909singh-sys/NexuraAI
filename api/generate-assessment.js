@@ -80,7 +80,7 @@ Requirements:
 `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
 
       contents: prompt,
 
@@ -196,13 +196,9 @@ Requirements:
     );
 
     return res.status(500).json({
-      success: false,
-      message:
-        "Failed to generate assessment questions.",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : undefined,
-    });
+  success: false,
+  message: "Failed to generate assessment questions.",
+  error: error.message,
+});
   }
 }
