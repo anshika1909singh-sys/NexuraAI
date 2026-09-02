@@ -24,10 +24,7 @@ export const DataProvider = ({ children }) => {
   const [opportunities, setOpportunities] = useState([]);
 
   // Applications
-  const [applications, setApplications] = useState(() => {
-    const saved = localStorage.getItem('nexura_applications');
-    return saved ? JSON.parse(saved) : INITIAL_APPLICATIONS;
-  });
+  const [applications, setApplications] = useState([]);
 
   // Capability Projects
   const [capabilityProjects, setCapabilityProjects] = useState(() => {
@@ -163,13 +160,45 @@ export const DataProvider = ({ children }) => {
   loadOpportunities();
 }, []);
 
-  useEffect(() => {
-    localStorage.setItem('nexura_opportunities', JSON.stringify(opportunities));
-  }, [opportunities]);
+useEffect(() => {
+  const loadApplications = async () => {
+    if (!currentUser?.uid) {
+      setApplications([]);
+      return;
+    }
 
-  useEffect(() => {
-    localStorage.setItem('nexura_applications', JSON.stringify(applications));
-  }, [applications]);
+    try {
+      const data = await getStudentApplications(currentUser.uid);
+
+      const formattedApplications = data.map((app) => {
+        const opportunity = opportunities.find(
+          (opp) => opp.id === app.opportunityId
+        );
+
+        return {
+          ...app,
+          title: opportunity?.title || "Opportunity",
+          company: opportunity?.company || "",
+          appliedDate: app.appliedAt
+            ? app.appliedAt.toDate().toISOString().split("T")[0]
+            : "",
+          step: 1,
+          feedback:
+            "Application successfully received by the recruitment team.",
+          interviewDate: null,
+        };
+      });
+
+      setApplications(formattedApplications);
+    } catch (error) {
+      console.error("Error loading applications:", error);
+    }
+  };
+
+  loadApplications();
+}, [currentUser, opportunities]);
+
+
 
   useEffect(() => {
     localStorage.setItem('nexura_capability_projects', JSON.stringify(capabilityProjects));
@@ -200,54 +229,67 @@ export const DataProvider = ({ children }) => {
   }, [roadmapSteps]);
 
   // Actions
-  const applyToOpportunity = async (oppId, user) => {
-    if (!user) {
+  const applyToOpportunity = async (oppId) => {
+  if (!currentUser) {
+    return {
+      success: false,
+      message: "Please login to apply.",
+    };
+  }
+
+  try {
+    const result = await createApplication({
+      opportunityId: oppId,
+      studentId: currentUser.uid,
+    });
+
+    if (result.alreadyApplied) {
       return {
         success: false,
-        message: "Please login to apply.",
+        alreadyApplied: true,
+        message: "You have already applied to this opportunity.",
       };
     }
 
-    try {
-      const result = await createApplication({
-        opportunityId: oppId,
-        studentId: user.uid,
-      });
+    const opportunity = opportunities.find(
+      (opp) => opp.id === oppId
+    );
 
-      if (result.alreadyApplied) {
-        return {
-          success: false,
-          alreadyApplied: true,
-          message: "You have already applied to this opportunity.",
-        };
-      }
+    const newApplication = {
+      id: result.id,
+      opportunityId: oppId,
+      studentId: currentUser.uid,
+      title: opportunity?.title || "Opportunity",
+      company: opportunity?.company || "",
+      status: "Applied",
+      step: 1,
+      feedback:
+        "Application successfully received by the recruitment team.",
+      interviewDate: null,
+      appliedDate: new Date().toISOString().split("T")[0],
+    };
 
-      const newApplication = {
-        id: result.id,
-        opportunityId: oppId,
-        studentId: user.uid,
-        status: "applied",
-        appliedAt: new Date(),
-      };
+    setApplications((prev) => [
+      newApplication,
+      ...prev,
+    ]);
 
-      setApplications((prev) => [
-        ...prev,
-        newApplication,
-      ]);
+    return {
+      success: true,
+      message: `Successfully applied to ${
+        opportunity?.title || "this opportunity"
+      }!`,
+      application: newApplication,
+    };
+  } catch (error) {
+    console.error("Application error:", error);
 
-      return {
-        success: true,
-        application: newApplication,
-      };
-    } catch (error) {
-      console.error("Application error:", error);
-
-      return {
-        success: false,
-        message: "Unable to submit application.",
-      };
-    }
-  };
+    return {
+      success: false,
+      message: error.message || "Unable to submit application.",
+    };
+  }
+};
 
   const postNewOpportunity = (newOpp) => {
     const opp = {
