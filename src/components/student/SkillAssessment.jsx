@@ -1038,6 +1038,39 @@ export const SkillAssessment = ({ setActiveTab }) => {
 
       </Modal>
 
+      {isGeneratingQuestions && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          role="status"
+          aria-live="assertive"
+          aria-label="Questions are being generated"
+        >
+          <div className="absolute inset-0 bg-slate-950/65 backdrop-blur-sm" />
+
+          <div className="relative w-full max-w-sm rounded-2xl border border-white/15 bg-white p-7 text-center shadow-2xl dark:bg-slate-900">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100 text-brand-600 dark:bg-brand-950/60 dark:text-brand-300">
+              <Sparkles className="h-7 w-7 animate-pulse" />
+            </div>
+
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              Generating your questions
+            </h3>
+
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+              Gemini is tailoring {numQuestions} questions to your {selectedDomain} experience. This can take a moment.
+            </p>
+
+            <div className="mx-auto mt-6 h-1.5 w-40 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+              <div className="h-full w-1/2 rounded-full bg-brand-600 animate-pulse" />
+            </div>
+
+            <p className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-400">
+              Please keep this window open.
+            </p>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
