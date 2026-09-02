@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
-import { SKILL_MODULES } from '../../data/mockData';
 import { Modal } from '../common/Modal';
 import { CertificateModal } from '../common/CertificateModal';
 import {
@@ -34,6 +33,7 @@ export const SkillsCertifications = () => {
   const [auditResult, setAuditResult] = useState(null);
   const [certModalOpen, setCertModalOpen] = useState(false);
   const [activeCertificate, setActiveCertificate] = useState(null);
+  const skillModules = [];
 
   const handleOpenSubmit = (proj) => {
     setSelectedProject(proj);
@@ -107,7 +107,7 @@ export const SkillsCertifications = () => {
                 : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            Curated Skill Courses ({SKILL_MODULES.length})
+            Curated Skill Courses ({skillModules.length})
           </button>
         </div>
       </div>
@@ -125,6 +125,15 @@ export const SkillsCertifications = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {capabilityProjects.length === 0 && (
+              <div className="md:col-span-3 rounded-3xl border border-dashed border-slate-300 bg-white/60 px-6 py-12 text-center dark:border-slate-700 dark:bg-slate-900/40">
+                <Award className="mx-auto h-10 w-10 text-amber-500" />
+                <h3 className="mt-4 text-sm font-bold text-slate-900 dark:text-white">No capability projects yet</h3>
+                <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-slate-500 dark:text-slate-400">
+                  Your verified projects and certificates will appear here once they are assigned or submitted.
+                </p>
+              </div>
+            )}
             {capabilityProjects.map((proj) => {
               const isCompleted = proj.status === 'Completed';
               return (
@@ -208,7 +217,16 @@ export const SkillsCertifications = () => {
       ) : (
         /* Skill Courses Catalog */
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {SKILL_MODULES.map((mod) => (
+          {skillModules.length === 0 && (
+            <div className="md:col-span-2 rounded-3xl border border-dashed border-slate-300 bg-white/60 px-6 py-12 text-center dark:border-slate-700 dark:bg-slate-900/40">
+              <BookOpen className="mx-auto h-10 w-10 text-brand-500" />
+              <h3 className="mt-4 text-sm font-bold text-slate-900 dark:text-white">No courses available yet</h3>
+              <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-slate-500 dark:text-slate-400">
+                Courses and learning recommendations will appear here when they are available from your backend.
+              </p>
+            </div>
+          )}
+          {skillModules.map((mod) => (
             <div
               key={mod.id}
               className="p-6 rounded-3xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row gap-5 items-start"

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../common/Modal';
-import { GraduationCap, Building2, Landmark, BookOpenCheck, ArrowRight, Sparkles, Check, ShieldCheck, Globe } from 'lucide-react';
-import { INITIAL_USERS } from '../../data/mockData';
+import { GraduationCap, Building2, Landmark, BookOpenCheck, ArrowRight, Check, ShieldCheck, Globe } from 'lucide-react';
 
 export const AuthModal = () => {
   const { authModalOpen, closeAuth, authModalMode, authModalRole, login, signup, loginWithGoogle } = useAuth();
@@ -24,7 +23,7 @@ export const AuthModal = () => {
     setSelectedRole(authModalRole || 'student');
   }, [authModalMode, authModalRole]);
 
-  const demoRoles = [
+  const userRoles = [
     {
       id: 'student',
       label: 'Student',
@@ -56,7 +55,7 @@ export const AuthModal = () => {
   ];
 
   const loginRoles = [
-    ...demoRoles,
+    ...userRoles,
     {
       id: 'admin',
       label: 'Admin',
@@ -66,7 +65,7 @@ export const AuthModal = () => {
     }
   ];
 
-  const roles = demoRoles;
+  const roles = userRoles;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -75,22 +74,24 @@ export const AuthModal = () => {
     if (isLogin) {
       const rawEmail = (formData.email || '').trim().toLowerCase();
       const adminEmail = 'admin@nexura.ai';
-      const email = rawEmail || INITIAL_USERS[selectedRole]?.email || 'demo@nexura.ai';
+      if (!rawEmail) {
+        setError('Please enter your email address');
+        return;
+      }
+
+      const email = rawEmail;
       const roleToLogin = rawEmail === adminEmail ? 'admin' : selectedRole;
-      login(email, formData.password, roleToLogin);
+      login(email, formData.password, roleToLogin).then((result) => {
+        if (!result.success) {
+          setError(result.message || 'Unable to sign in');
+        }
+      });
     } else {
       if (!formData.name || !formData.email) {
         setError('Please provide your name and email');
         return;
       }
       signup({ ...formData, role: selectedRole });
-    }
-  };
-
-  const handleQuickDemo = (roleKey) => {
-    const demoUser = INITIAL_USERS[roleKey];
-    if (demoUser) {
-      login(demoUser.email, 'password123', roleKey);
     }
   };
 
@@ -138,32 +139,6 @@ export const AuthModal = () => {
           >
             Create New Account
           </button>
-        </div>
-
-        {/* 1-Click Instant Demo Access Box */}
-        <div className="p-3.5 rounded-xl bg-gradient-to-r from-brand-500/10 via-violet-500/10 to-indigo-500/10 border border-brand-500/20">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-brand-500" />
-              1-Click Demo Personas (Instant Exploration)
-            </span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {demoRoles.map((r) => {
-              const IconComp = r.icon;
-              return (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => handleQuickDemo(r.id)}
-                  className="flex flex-col items-center p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-brand-500/50 hover:shadow-sm text-[11px] font-semibold text-slate-700 dark:text-slate-200 transition-all hover:scale-105"
-                >
-                  <IconComp className="w-4 h-4 mb-1 text-brand-500" />
-                  <span className="truncate w-full text-center">{r.label.split(' ')[0]}</span>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         {/* Select Role Header */}

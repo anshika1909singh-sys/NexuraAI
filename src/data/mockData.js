@@ -215,8 +215,8 @@ export const INITIAL_APPLICATIONS = [
     title: 'AI Full-Stack Developer Intern',
     company: 'CloudScale Technologies AI',
     appliedDate: '2026-08-27',
-    status: 'Shortlisted', // Applied, Assessment Completed, Under Review, Shortlisted, Interview Scheduled, Offered
-    step: 4,
+    status: 'Interview Scheduled', // Applied, Shortlisted, Interview Scheduled, Hired
+    step: 3,
     feedback: 'Your AI Skill Assessment score (84%) and React capability project scored top 5% in candidate batch. Technical interview invited.',
     interviewDate: 'Sept 5, 2026 - 3:30 PM'
   },
@@ -226,8 +226,8 @@ export const INITIAL_APPLICATIONS = [
     title: 'On-Campus Microsoft Placement Drive',
     company: 'Microsoft India',
     appliedDate: '2026-08-28',
-    status: 'Under Review',
-    step: 3,
+    status: 'Shortlisted',
+    step: 2,
     feedback: 'Application submitted to University Placement Cell. Resume verified by Faculty Mentor.',
     interviewDate: 'Sept 12, 2026'
   },
@@ -237,8 +237,8 @@ export const INITIAL_APPLICATIONS = [
     title: 'Frontend Engineer (React / Next.js)',
     company: 'NexusLabs Global',
     appliedDate: '2026-08-25',
-    status: 'Assessment Completed',
-    step: 2,
+    status: 'Hired',
+    step: 4,
     feedback: 'Online assessment completed. Score: 88/100. Recruiter reviewing candidate portfolio.',
     interviewDate: null
   },

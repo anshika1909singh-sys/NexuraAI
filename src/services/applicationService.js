@@ -48,7 +48,7 @@ export const applyToOpportunity = async ({
     studentCollege: studentCollege || "",
     studentDepartment: studentDepartment || "",
 
-    status: "applied",
+    status: "Applied",
     appliedAt: serverTimestamp(),
   };
 
@@ -82,7 +82,8 @@ export const getStudentApplications = async (studentId) => {
 // Update application status
 export const updateApplicationStatus = async (
   applicationId,
-  status
+  status,
+  interviewAt
 ) => {
   const applicationRef = doc(
     db,
@@ -90,15 +91,22 @@ export const updateApplicationStatus = async (
     applicationId
   );
 
-  await updateDoc(applicationRef, {
+  const updates = {
     status,
     updatedAt: serverTimestamp()
-  });
+  };
+
+  if (interviewAt !== undefined) {
+    updates.interviewAt = interviewAt;
+  }
+
+  await updateDoc(applicationRef, updates);
 
   return {
     success: true,
     applicationId,
-    status
+    status,
+    interviewAt
   };
 };
 

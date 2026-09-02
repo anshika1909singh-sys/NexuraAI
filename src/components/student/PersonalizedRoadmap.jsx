@@ -15,6 +15,26 @@ import {
 export const PersonalizedRoadmap = ({ setActiveTab }) => {
   const { roadmapSteps, toggleRoadmapTask, assessmentResult } = useData();
 
+  if (!assessmentResult?.taken || roadmapSteps.length === 0) {
+    return (
+      <div className="mx-auto max-w-3xl rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-950 via-slate-900 to-brand-950 p-8 text-center text-white shadow-xl sm:p-12">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-500/20 text-violet-200">
+          <Compass className="h-7 w-7" />
+        </div>
+        <h2 className="mt-5 text-2xl font-extrabold font-display">Your roadmap will start here</h2>
+        <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-slate-300">
+          Complete your first skill assessment and we’ll create a roadmap around your results—there’s no previous activity yet.
+        </p>
+        <button
+          onClick={() => setActiveTab('assessment')}
+          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-xs font-bold text-violet-700 transition-transform hover:scale-105"
+        >
+          Take Assessment <ArrowRight className="h-4 w-4" />
+        </button>
+      </div>
+    );
+  }
+
   const totalTasks = roadmapSteps.reduce((acc, s) => acc + s.tasks.length, 0);
   const doneTasks = roadmapSteps.reduce((acc, s) => acc + s.tasks.filter((t) => t.done).length, 0);
   const overallPct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;

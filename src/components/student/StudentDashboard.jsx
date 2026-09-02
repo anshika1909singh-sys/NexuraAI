@@ -63,6 +63,61 @@ export const StudentDashboard = ({ setActiveTab }) => {
   const roadmapProgressPct = totalRoadmapTasks > 0 ? Math.round((completedRoadmapTasks / totalRoadmapTasks) * 100) : 0;
 
   const verifiedCertificatesCount = capabilityProjects.filter((p) => p.status === 'Completed').length;
+  const isNewStudent =
+    !assessmentResult?.taken &&
+    applications.length === 0 &&
+    roadmapSteps.length === 0 &&
+    capabilityProjects.length === 0;
+
+  if (isNewStudent) {
+    return (
+      <div className="mx-auto max-w-4xl space-y-8 animate-fadeIn">
+        <div className="relative overflow-hidden rounded-3xl border border-brand-500/20 bg-gradient-to-br from-brand-900 via-indigo-950 to-slate-900 p-8 text-white shadow-xl sm:p-12">
+          <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-brand-500/20 blur-3xl" />
+          <div className="relative max-w-2xl space-y-5">
+            <span className="inline-flex items-center gap-2 rounded-full border border-brand-300/30 bg-brand-400/10 px-3 py-1 text-xs font-bold text-brand-200">
+              <Sparkles className="h-3.5 w-3.5" />
+              Welcome to Nexura AI
+            </span>
+            <h2 className="text-3xl font-extrabold font-display sm:text-4xl">
+              Welcome, {currentUser?.name || 'there'}!
+            </h2>
+            <p className="text-sm leading-6 text-slate-300 sm:text-base">
+              Your profile is ready. Take your first assessment to unlock a personalized roadmap, skill insights, and opportunity recommendations.
+            </p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <button
+                onClick={() => setActiveTab('assessment')}
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-xs font-bold text-brand-700 shadow-lg transition-transform hover:scale-105"
+              >
+                Start Your Assessment <ArrowRight className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setActiveTab('opportunities')}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-xs font-bold text-white transition-colors hover:bg-white/15"
+              >
+                Browse Opportunities <Briefcase className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[
+            ['1', 'Take assessment', 'Discover your current strengths and focus areas.'],
+            ['2', 'Get your roadmap', 'Receive guidance built from your results.'],
+            ['3', 'Build your profile', 'Track applications and verified achievements.']
+          ].map(([step, title, description]) => (
+            <div key={step} className="rounded-2xl border border-slate-200 bg-white/80 p-5 dark:border-slate-800 dark:bg-slate-900/80">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-500/10 text-sm font-black text-brand-600 dark:text-brand-300">{step}</span>
+              <h3 className="mt-4 text-sm font-bold text-slate-900 dark:text-white">{title}</h3>
+              <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fadeIn">

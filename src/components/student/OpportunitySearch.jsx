@@ -31,6 +31,19 @@ export const OpportunitySearch = ({ setActiveTab }) => {
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [applySuccessMsg, setApplySuccessMsg] = useState('');
+  const [selectedInterview, setSelectedInterview] = useState(null);
+
+  const formatInterviewDateTime = (value) => {
+    if (!value) return '';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    }).format(date);
+  };
 
   const types = ['All', 'Internship', 'Full-Time', 'On-Campus Drive'];
   const domains = ['All', 'AI & Full Stack', 'Frontend Engineering', 'DevOps & Cloud', 'AI & Data Science', 'Software Engineering'];
@@ -309,10 +322,9 @@ export const OpportunitySearch = ({ setActiveTab }) => {
               {applications.map((app) => {
                 const stages = [
                   { label: 'Applied', step: 1 },
-                  { label: 'Assessment Verified', step: 2 },
-                  { label: 'Under Review', step: 3 },
-                  { label: 'Shortlisted', step: 4 },
-                  { label: 'Offer', step: 5 }
+                  { label: 'Shortlisted', step: 2 },
+                  { label: 'Interview Scheduled', step: 3 },
+                  { label: 'Hired', step: 4 }
                 ];
 
                 return (
@@ -336,7 +348,7 @@ export const OpportunitySearch = ({ setActiveTab }) => {
 
                     {/* Visual Progress Bar */}
                     <div className="space-y-2">
-                      <div className="grid grid-cols-5 gap-1 text-center">
+                      <div className="grid grid-cols-4 gap-1 text-center">
                         {stages.map((st) => (
                           <div key={st.step} className="space-y-1">
                             <div
@@ -346,6 +358,24 @@ export const OpportunitySearch = ({ setActiveTab }) => {
                                   : 'bg-slate-200 dark:bg-slate-700'
                               }`}
                             />
+                            {st.label === 'Interview Scheduled' && app.interviewDate ? (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedInterview({
+                                  title: app.title,
+                                  company: app.company,
+                                  interviewDate: app.interviewDate
+                                })}
+                                className={`w-full text-[9px] font-bold block truncate underline decoration-dotted underline-offset-2 ${
+                                  app.step >= st.step
+                                    ? 'text-brand-600 dark:text-brand-400'
+                                    : 'text-slate-400'
+                                }`}
+                                title="View interview date and time"
+                              >
+                                {st.label}
+                              </button>
+                            ) : (
                             <span
                               className={`text-[9px] font-bold block truncate ${
                                 app.step >= st.step
@@ -355,6 +385,7 @@ export const OpportunitySearch = ({ setActiveTab }) => {
                             >
                               {st.label}
                             </span>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -370,7 +401,7 @@ export const OpportunitySearch = ({ setActiveTab }) => {
                         {app.interviewDate && (
                           <div className="mt-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-semibold flex items-center gap-2">
                             <Calendar className="w-4 h-4 text-emerald-500" />
-                            Interview Scheduled: {app.interviewDate}
+                            Interview Scheduled: {formatInterviewDateTime(app.interviewDate)}
                           </div>
                         )}
                       </div>
@@ -382,6 +413,30 @@ export const OpportunitySearch = ({ setActiveTab }) => {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={Boolean(selectedInterview)}
+        onClose={() => setSelectedInterview(null)}
+        title="Interview Scheduled"
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+            <Calendar className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-slate-900 dark:text-white">
+              {selectedInterview?.title}
+            </p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              {selectedInterview?.company}
+            </p>
+          </div>
+          <div className="rounded-xl bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-700 dark:text-emerald-300">
+            {formatInterviewDateTime(selectedInterview?.interviewDate)}
+          </div>
+        </div>
+      </Modal>
 
       {/* Quick Apply Confirmation Modal */}
       {selectedOpportunity && (

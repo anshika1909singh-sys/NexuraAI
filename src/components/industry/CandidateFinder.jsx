@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
+import { Modal } from '../common/Modal';
 import {
   Sparkles,
   Search,
@@ -27,6 +28,28 @@ export const CandidateFinder = () => {
   const [search, setSearch] = useState('');
   const [minScore, setMinScore] = useState(0);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [candidateToSchedule, setCandidateToSchedule] = useState(null);
+  const [interviewDate, setInterviewDate] = useState('');
+  const [interviewTime, setInterviewTime] = useState('');
+
+  const scheduledDateTime =
+    interviewDate && interviewTime
+      ? new Date(`${interviewDate}T${interviewTime}`)
+      : null;
+  const formattedScheduledDate = scheduledDateTime && !Number.isNaN(scheduledDateTime.getTime())
+    ? new Intl.DateTimeFormat(undefined, {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      }).format(scheduledDateTime)
+    : 'Choose a date';
+  const formattedScheduledTime = scheduledDateTime && !Number.isNaN(scheduledDateTime.getTime())
+    ? new Intl.DateTimeFormat(undefined, {
+        hour: 'numeric',
+        minute: '2-digit'
+      }).format(scheduledDateTime)
+    : 'Choose a time';
   const applicantCandidates = useMemo(() => {
   return (industryApplications || []).map((application) => ({
     id: application.id,
@@ -83,6 +106,10 @@ export const CandidateFinder = () => {
     company:
       application.company ||
       currentUser?.company ||
+      "",
+
+    interviewAt:
+      application.interviewAt ||
       ""
   }));
 }, [industryApplications, currentUser]);
@@ -104,12 +131,14 @@ export const CandidateFinder = () => {
   
 const handleAction = async (
   applicationId,
-  status
+  status,
+  scheduledInterviewAt
 ) => {
   const result =
     await updateIndustryApplicationStatus(
       applicationId,
-      status
+      status,
+      scheduledInterviewAt
     );
 
   if (!result?.success) {
@@ -117,7 +146,7 @@ const handleAction = async (
       result?.message ||
       "Unable to update application."
     );
-    return;
+    return false;
   }
 
   if (
@@ -126,9 +155,42 @@ const handleAction = async (
   ) {
     setSelectedCandidate({
       ...selectedCandidate,
-      status
+      status,
+      ...(scheduledInterviewAt !== undefined
+        ? { interviewAt: scheduledInterviewAt }
+        : {})
     });
   }
+
+  return true;
+};
+
+const openScheduleInterview = (candidate) => {
+  setCandidateToSchedule(candidate);
+  setInterviewDate(candidate.interviewAt?.slice(0, 10) || '');
+  setInterviewTime(candidate.interviewAt?.slice(11, 16) || '');
+};
+
+const handleScheduleInterview = async () => {
+  if (!candidateToSchedule || !interviewDate || !interviewTime) {
+    return;
+  }
+
+  const interviewAt = `${interviewDate}T${interviewTime}`;
+
+  const scheduled = await handleAction(
+    candidateToSchedule.id,
+    'Interview Scheduled',
+    interviewAt
+  );
+
+  if (!scheduled) {
+    return;
+  }
+
+  setCandidateToSchedule(null);
+  setInterviewDate('');
+  setInterviewTime('');
 };
   return (
     <div className="space-y-8 animate-fadeIn max-w-6xl mx-auto">
@@ -266,16 +328,122 @@ const handleAction = async (
                   Shortlist
                 </button>
                 <button
-                  onClick={() => handleAction(cand.id, 'Interview Scheduled')}
+                  onClick={() => openScheduleInterview(cand)}
                   className="px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-sm transition-all"
                 >
                   Schedule Interview
+                </button>
+                <button
+                  onClick={() => handleAction(cand.id, 'Hired')}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all"
+                >
+                  Mark Hired
                 </button>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      <Modal
+        isOpen={Boolean(candidateToSchedule)}
+        onClose={() => setCandidateToSchedule(null)}
+        title="Schedule Interview"
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-brand-500/15 bg-gradient-to-br from-brand-50 to-violet-50 p-4 dark:from-brand-950/40 dark:to-violet-950/30">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-600 dark:text-brand-300">
+              Candidate
+            </p>
+            <p className="mt-1 text-base font-bold text-slate-900 dark:text-white">
+              {candidateToSchedule?.name}
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              {candidateToSchedule?.opportunityTitle}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="group relative cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:border-brand-400 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/60">
+              <input
+                type="date"
+                value={interviewDate}
+                onChange={(event) => setInterviewDate(event.target.value)}
+                min={new Date().toISOString().slice(0, 10)}
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                aria-label="Interview date"
+                required
+              />
+              <span className="flex items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-950/70 dark:text-brand-300">
+                  <Calendar className="h-5 w-5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Date</span>
+                  <span className="mt-1 block truncate text-xs font-bold text-slate-800 dark:text-slate-100">
+                    {interviewDate
+                      ? new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(`${interviewDate}T00:00`))
+                      : 'Select date'}
+                  </span>
+                </span>
+              </span>
+            </label>
+
+            <label className="group relative cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:border-violet-400 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/60">
+              <input
+                type="time"
+                value={interviewTime}
+                onChange={(event) => setInterviewTime(event.target.value)}
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                aria-label="Interview time"
+                required
+              />
+              <span className="flex items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600 dark:bg-violet-950/70 dark:text-violet-300">
+                  <Calendar className="h-5 w-5" />
+                </span>
+                <span>
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Time</span>
+                  <span className="mt-1 block text-xs font-bold text-slate-800 dark:text-slate-100">
+                    {interviewTime
+                      ? new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(new Date(`2000-01-01T${interviewTime}`))
+                      : 'Select time'}
+                  </span>
+                </span>
+              </span>
+            </label>
+          </div>
+
+          <div className="rounded-2xl border border-dashed border-brand-500/30 bg-brand-50/50 p-4 dark:bg-brand-950/20">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-300">
+              Interview slot preview
+            </p>
+            <p className="mt-1 text-sm font-bold text-slate-900 dark:text-white">
+              {formattedScheduledDate}
+            </p>
+            <p className="mt-0.5 text-xs font-semibold text-brand-700 dark:text-brand-300">
+              {formattedScheduledTime}
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setCandidateToSchedule(null)}
+              className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleScheduleInterview}
+              disabled={!interviewDate || !interviewTime}
+              className="rounded-xl bg-brand-600 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Confirm Schedule
+            </button>
+          </div>
+        </div>
+      </Modal>
 
     </div>
   );

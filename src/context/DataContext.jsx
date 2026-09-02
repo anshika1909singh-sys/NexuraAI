@@ -7,16 +7,6 @@ import React, {
 } from "react";
 
 import {
-  INITIAL_OPPORTUNITIES,
-  CAPABILITY_PROJECTS,
-  CAMPUS_EVENTS,
-  FACULTY_DIRECTORY,
-  GUIDANCE_REQUESTS,
-  FDP_PROGRAMS,
-  CANDIDATE_POOL
-} from "../data/mockData";
-
-import {
   getOpportunities,
   createOpportunity
 } from "../services/opportunityService";
@@ -49,15 +39,17 @@ export const DataProvider = ({ children }) => {
 
   const [applications, setApplications] = useState([]);
   
-  const updateIndustryApplicationStatus = async (
+const updateIndustryApplicationStatus = async (
   applicationId,
-  status
+  status,
+  interviewAt
 ) => {
   try {
     const result =
       await updateApplicationStatus(
         applicationId,
-        status
+        status,
+        interviewAt
       );
 
     setIndustryApplications((prev) =>
@@ -65,7 +57,10 @@ export const DataProvider = ({ children }) => {
         application.id === applicationId
           ? {
               ...application,
-              status
+              status,
+              ...(interviewAt !== undefined
+                ? { interviewAt }
+                : {})
             }
           : application
       )
@@ -93,90 +88,38 @@ export const DataProvider = ({ children }) => {
   // CAPABILITY PROJECTS
   // =========================================================
 
-  const [capabilityProjects, setCapabilityProjects] =
-    useState(() => {
-      const saved = localStorage.getItem(
-        "nexura_capability_projects"
-      );
-
-      return saved
-        ? JSON.parse(saved)
-        : CAPABILITY_PROJECTS;
-    });
+  const [capabilityProjects, setCapabilityProjects] = useState([]);
 
   // =========================================================
   // CAMPUS EVENTS
   // =========================================================
 
-  const [campusEvents, setCampusEvents] =
-    useState(() => {
-      const saved = localStorage.getItem(
-        "nexura_campus_events"
-      );
-
-      return saved
-        ? JSON.parse(saved)
-        : CAMPUS_EVENTS;
-    });
+  const [campusEvents, setCampusEvents] = useState([]);
 
   // =========================================================
   // GUIDANCE REQUESTS
   // =========================================================
 
-  const [guidanceRequests, setGuidanceRequests] =
-    useState(() => {
-      const saved = localStorage.getItem(
-        "nexura_guidance_requests"
-      );
-
-      return saved
-        ? JSON.parse(saved)
-        : GUIDANCE_REQUESTS;
-    });
+  const [guidanceRequests, setGuidanceRequests] = useState([]);
 
   // =========================================================
   // FDP PROGRAMS
   // =========================================================
 
-  const [fdpPrograms, setFdpPrograms] =
-    useState(() => {
-      const saved = localStorage.getItem(
-        "nexura_fdp_programs"
-      );
-
-      return saved
-        ? JSON.parse(saved)
-        : FDP_PROGRAMS;
-    });
+  const [fdpPrograms, setFdpPrograms] = useState([]);
 
   // =========================================================
   // CANDIDATE POOL
   // =========================================================
 
-  const [candidatePool, setCandidatePool] =
-    useState(() => {
-      const saved = localStorage.getItem(
-        "nexura_candidate_pool"
-      );
-
-      return saved
-        ? JSON.parse(saved)
-        : CANDIDATE_POOL;
-    });
+  const [candidatePool, setCandidatePool] = useState([]);
+  const [facultyList] = useState([]);
 
   // =========================================================
   // ASSESSMENT RESULT
   // =========================================================
 
-  const [assessmentResult, setAssessmentResult] =
-    useState(() => {
-      const saved = localStorage.getItem(
-        "nexura_assessment_result"
-      );
-
-      return saved
-        ? JSON.parse(saved)
-        : {
+  const [assessmentResult, setAssessmentResult] = useState({
             taken: false,
             score: 0,
             totalQuestions: 0,
@@ -191,139 +134,39 @@ export const DataProvider = ({ children }) => {
             weaknesses: [],
             aiFeedback:
               "Complete the assessment to receive your personalized AI analysis."
-          };
-    });
+          });
 
   // =========================================================
   // PERSONALIZED ROADMAP
   // =========================================================
 
-  const [roadmapSteps, setRoadmapSteps] =
-    useState(() => {
-      const saved = localStorage.getItem(
-        "nexura_roadmap"
-      );
+  const [roadmapSteps, setRoadmapSteps] = useState([]);
 
-      return saved
-        ? JSON.parse(saved)
-        : [
-            {
-              id: "step_1",
-              title:
-                "Phase 1: Vector Databases & High-Dimensional Semantic Search",
-              focusArea:
-                "Addressing Weakness in Vector Search & RAG",
-              completed: true,
-              estimatedDays: "3 Days",
-              tasks: [
-                {
-                  text:
-                    "Understand HNSW vs IVF indexing algorithms in ChromaDB / Pinecone",
-                  done: true
-                },
-                {
-                  text:
-                    "Build a Python FastAPI microservice that generates and indexes OpenAI/Gemini embeddings",
-                  done: true
-                },
-                {
-                  text:
-                    "Implement hybrid keyword + semantic similarity search with reciprocal rank fusion",
-                  done: true
-                }
-              ],
-              resourceLink:
-                "https://docs.trychroma.com/"
-            },
-
-            {
-              id: "step_2",
-              title:
-                "Phase 2: Docker Containers & Kubernetes Pod Networking",
-              focusArea:
-                "Addressing Weakness in Cloud & Microservices",
-              completed: false,
-              estimatedDays: "4 Days",
-              tasks: [
-                {
-                  text:
-                    "Create multi-stage Dockerfiles for optimized React & FastAPI images",
-                  done: true
-                },
-                {
-                  text:
-                    "Deploy a local 3-node cluster using Minikube / K3s with Ingress controller",
-                  done: false
-                },
-                {
-                  text:
-                    "Configure Pod resource limits, readiness/liveness probes, and ConfigMaps",
-                  done: false
-                }
-              ],
-              resourceLink:
-                "https://kubernetes.io/docs/concepts/workloads/pods/"
-            },
-
-            {
-              id: "step_3",
-              title:
-                "Phase 3: Transformer Attention & LoRA Fine-Tuning Foundations",
-              focusArea:
-                "Leveling Up AI / Machine Learning Capabilities",
-              completed: false,
-              estimatedDays: "5 Days",
-              tasks: [
-                {
-                  text:
-                    "Study Multi-Head Self Attention computation and positional encodings",
-                  done: false
-                },
-                {
-                  text:
-                    "Fine-tune a small model using HuggingFace PEFT / LoRA",
-                  done: false
-                },
-                {
-                  text:
-                    "Evaluate BLEU and ROUGE benchmark metrics on a custom QA dataset",
-                  done: false
-                }
-              ],
-              resourceLink:
-                "https://huggingface.co/docs/peft/"
-            },
-
-            {
-              id: "step_4",
-              title:
-                "Phase 4: Capstone Capability Project & Verified Certification",
-              focusArea:
-                "Proving Industry Readiness to Recruiters",
-              completed: false,
-              estimatedDays: "3 Days",
-              tasks: [
-                {
-                  text:
-                    "Submit capability project: Autonomous AI Code Reviewer or Collaborative Canvas",
-                  done: false
-                },
-                {
-                  text:
-                    "Pass automated AI capability code evaluation score > 85%",
-                  done: false
-                },
-                {
-                  text:
-                    "Generate verified QR-coded certificate and link to student profile for recruiters",
-                  done: false
-                }
-              ],
-              resourceLink:
-                "#capability-projects"
-            }
-          ];
+  useEffect(() => {
+    setApplications([]);
+    setIndustryApplications([]);
+    setCapabilityProjects([]);
+    setCampusEvents([]);
+    setGuidanceRequests([]);
+    setFdpPrograms([]);
+    setCandidatePool([]);
+    setAssessmentResult({
+      taken: false,
+      score: 0,
+      totalQuestions: 0,
+      correctCount: 0,
+      date: null,
+      domain: null,
+      level: null,
+      experienceYears: 0,
+      experienceMonths: 0,
+      domainScores: {},
+      strengths: [],
+      weaknesses: [],
+      aiFeedback: "Complete the assessment to receive your personalized AI analysis."
     });
+    setRoadmapSteps([]);
+  }, [currentUser?.uid]);
 
   // =========================================================
   // LOAD OPPORTUNITIES FROM FIRESTORE
@@ -471,8 +314,24 @@ useEffect(() => {
               }
             }
 
+            const statusSteps = {
+              applied: { status: "Applied", step: 1 },
+              shortlisted: { status: "Shortlisted", step: 2 },
+              "interview scheduled": {
+                status: "Interview Scheduled",
+                step: 3
+              },
+              hired: { status: "Hired", step: 4 }
+            };
+            const normalizedStatus = String(app.status || "Applied")
+              .trim()
+              .toLowerCase();
+            const applicationStatus =
+              statusSteps[normalizedStatus] || statusSteps.applied;
+
             return {
               ...app,
+              ...applicationStatus,
 
               title:
                 opportunity?.title ||
@@ -484,12 +343,10 @@ useEffect(() => {
 
               appliedDate,
 
-              step: 1,
-
               feedback:
                 "Application successfully received by the recruitment team.",
 
-              interviewDate: null
+              interviewDate: app.interviewAt || null
             };
           });
 
@@ -506,59 +363,6 @@ useEffect(() => {
 
     loadApplications();
   }, [currentUser, opportunities]);
-
-  // =========================================================
-  // LOCAL STORAGE PERSISTENCE
-  // =========================================================
-
-  useEffect(() => {
-    localStorage.setItem(
-      "nexura_capability_projects",
-      JSON.stringify(capabilityProjects)
-    );
-  }, [capabilityProjects]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      "nexura_campus_events",
-      JSON.stringify(campusEvents)
-    );
-  }, [campusEvents]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      "nexura_guidance_requests",
-      JSON.stringify(guidanceRequests)
-    );
-  }, [guidanceRequests]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      "nexura_fdp_programs",
-      JSON.stringify(fdpPrograms)
-    );
-  }, [fdpPrograms]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      "nexura_candidate_pool",
-      JSON.stringify(candidatePool)
-    );
-  }, [candidatePool]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      "nexura_assessment_result",
-      JSON.stringify(assessmentResult)
-    );
-  }, [assessmentResult]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      "nexura_roadmap",
-      JSON.stringify(roadmapSteps)
-    );
-  }, [roadmapSteps]);
 
   // =========================================================
   // APPLY TO OPPORTUNITY
@@ -1423,8 +1227,7 @@ useEffect(() => {
 
         campusEvents,
 
-        facultyList:
-          FACULTY_DIRECTORY,
+        facultyList,
 
         guidanceRequests,
 
