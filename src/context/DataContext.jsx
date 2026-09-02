@@ -16,11 +16,16 @@ import {
   CANDIDATE_POOL
 } from "../data/mockData";
 
-import { getOpportunities } from "../services/opportunityService";
+import {
+  getOpportunities,
+  createOpportunity
+} from "../services/opportunityService";
 
 import {
   applyToOpportunity as createApplication,
-  getStudentApplications
+  getStudentApplications,
+  getApplicationsForOpportunities,
+  updateApplicationStatus
 } from "../services/applicationService";
 
 import {
@@ -43,7 +48,47 @@ export const DataProvider = ({ children }) => {
   // =========================================================
 
   const [applications, setApplications] = useState([]);
+  
+  const updateIndustryApplicationStatus = async (
+  applicationId,
+  status
+) => {
+  try {
+    const result =
+      await updateApplicationStatus(
+        applicationId,
+        status
+      );
 
+    setIndustryApplications((prev) =>
+      prev.map((application) =>
+        application.id === applicationId
+          ? {
+              ...application,
+              status
+            }
+          : application
+      )
+    );
+
+    return result;
+
+  } catch (error) {
+    console.error(
+      "Error updating application status:",
+      error
+    );
+
+    return {
+      success: false,
+      message:
+        error.message ||
+        "Unable to update application status."
+    };
+  }
+};
+
+  const [industryApplications, setIndustryApplications] = useState([]);
   // =========================================================
   // CAPABILITY PROJECTS
   // =========================================================
@@ -300,6 +345,92 @@ export const DataProvider = ({ children }) => {
 
     loadOpportunities();
   }, []);
+  // =========================================================
+// LOAD INDUSTRY APPLICATIONS
+// =========================================================
+
+useEffect(() => {
+  const loadIndustryApplications = async () => {
+
+    // Only Industry users need this data
+    if (
+      !currentUser?.uid ||
+      currentUser?.role !== "industry"
+    ) {
+      setIndustryApplications([]);
+      return;
+    }
+
+    try {
+
+      // Find opportunities owned by this Industry account
+      const industryOpportunities =
+        opportunities.filter(
+          (opp) =>
+            opp.industryId === currentUser.uid
+        );
+
+      const opportunityIds =
+        industryOpportunities.map(
+          (opp) => opp.id
+        );
+
+      // No opportunities = no applications
+      if (!opportunityIds.length) {
+        setIndustryApplications([]);
+        return;
+      }
+
+      // Get applications for those opportunities
+      const data =
+        await getApplicationsForOpportunities(
+          opportunityIds
+        );
+
+      // Add opportunity information to each application
+      const formattedApplications =
+        data.map((application) => {
+
+          const opportunity =
+            industryOpportunities.find(
+              (opp) =>
+                opp.id ===
+                application.opportunityId
+            );
+
+          return {
+            ...application,
+
+            opportunityTitle:
+              opportunity?.title ||
+              "Opportunity",
+
+            company:
+              opportunity?.company ||
+              currentUser.company ||
+              ""
+          };
+        });
+
+      setIndustryApplications(
+        formattedApplications
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Error loading industry applications:",
+        error
+      );
+
+      setIndustryApplications([]);
+    }
+  };
+
+  loadIndustryApplications();
+
+}, [currentUser, opportunities]);
+
 
   // =========================================================
   // LOAD STUDENT APPLICATIONS
@@ -445,10 +576,22 @@ export const DataProvider = ({ children }) => {
 
     try {
       const result =
-        await createApplication({
-          opportunityId: oppId,
-          studentId: currentUser.uid
-        });
+  await createApplication({
+    opportunityId: oppId,
+    studentId: currentUser.uid,
+
+    studentName:
+      currentUser.name,
+
+    studentEmail:
+      currentUser.email,
+
+    studentCollege:
+      currentUser.college,
+
+    studentDepartment:
+      currentUser.department
+  });
 
       if (result.alreadyApplied) {
         return {
@@ -528,42 +671,63 @@ export const DataProvider = ({ children }) => {
   // POST NEW OPPORTUNITY
   // =========================================================
 
-  const postNewOpportunity = (
-    newOpp
-  ) => {
-    const opp = {
+  const postNewOpportunity = async (newOpp) => {
+  if (!currentUser?.uid) {
+    return {
+      success: false,
+      message: "Please login as an industry user."
+    };
+  }
+
+  try {
+    const opportunity = {
       ...newOpp,
 
-      id:
-        "opp_" +
-        Date.now(),
+      industryId: currentUser.uid,
 
-      postedDate:
-        "Just now",
+      postedBy: "Industry",
 
-      status:
-        "Open",
+      postedDate: "Just now",
+
+      status: "Open",
 
       matchScore:
-        Math.floor(
-          Math.random() * 20
-        ) + 75,
+        Math.floor(Math.random() * 20) + 75,
 
       logo:
         newOpp.logo ||
-        "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=100&auto=format&fit=crop&q=80"
+        "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=100&auto=format&fit=crop&q=80",
+
+      createdAt: new Date()
     };
 
+    const createdOpportunity =
+      await createOpportunity(opportunity);
+
     setOpportunities((prev) => [
-      opp,
+      createdOpportunity,
       ...prev
     ]);
 
     return {
       success: true,
-      opportunity: opp
+      opportunity: createdOpportunity
     };
-  };
+
+  } catch (error) {
+    console.error(
+      "Error posting opportunity:",
+      error
+    );
+
+    return {
+      success: false,
+      message:
+        error.message ||
+        "Unable to publish opportunity."
+    };
+  }
+};
 
   // =========================================================
   // SAVE ASSESSMENT RESULT
@@ -1253,6 +1417,9 @@ export const DataProvider = ({ children }) => {
         applications,
 
         capabilityProjects,
+
+        industryApplications,
+        updateIndustryApplicationStatus,
 
         campusEvents,
 

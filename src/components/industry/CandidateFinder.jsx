@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useData } from '../../context/DataContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   Sparkles,
   Search,
@@ -17,27 +18,118 @@ import {
 } from 'lucide-react';
 
 export const CandidateFinder = () => {
-  const { candidatePool, updateCandidateStatus } = useData();
+  const {
+  industryApplications,
+  updateIndustryApplicationStatus
+} = useData();
+
+  const { currentUser } = useAuth();
   const [search, setSearch] = useState('');
-  const [minScore, setMinScore] = useState(80);
+  const [minScore, setMinScore] = useState(0);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const applicantCandidates = useMemo(() => {
+  return (industryApplications || []).map((application) => ({
+    id: application.id,
 
-  const filteredCandidates = candidatePool.filter((c) => {
-    const matchesSearch =
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.college.toLowerCase().includes(search.toLowerCase()) ||
-      c.skills.some((sk) => sk.toLowerCase().includes(search.toLowerCase()));
-    const matchesScore = c.aiScore >= minScore;
-    return matchesSearch && matchesScore;
-  });
+    name:
+      application.studentName ||
+      "Nexura Student",
 
-  const handleAction = (candidateId, status) => {
-    updateCandidateStatus(candidateId, status);
-    if (selectedCandidate && selectedCandidate.id === candidateId) {
-      setSelectedCandidate({ ...selectedCandidate, status });
-    }
-  };
+    email:
+      application.studentEmail ||
+      "",
 
+    college:
+      application.studentCollege ||
+      "College not provided",
+
+    department:
+      application.studentDepartment ||
+      "Department not provided",
+
+    // These are placeholders until we connect
+    // the student's actual assessment score.
+    aiScore:
+      application.assessmentScore ||
+      0,
+
+    matchPercentage:
+      application.matchPercentage ||
+      0,
+
+    topStrength:
+      application.topStrength ||
+      "Applicant",
+
+    verifiedProjects:
+      application.verifiedProjects ||
+      0,
+
+    skills:
+      application.skills ||
+      [],
+
+    status:
+      application.status ||
+      "Applied",
+
+    opportunityId:
+      application.opportunityId,
+
+    opportunityTitle:
+      application.opportunityTitle ||
+      "Opportunity",
+
+    company:
+      application.company ||
+      currentUser?.company ||
+      ""
+  }));
+}, [industryApplications, currentUser]);
+  const filteredCandidates = applicantCandidates.filter((c) => {
+  const searchTerm = search.toLowerCase();
+
+  const matchesSearch =
+    c.name.toLowerCase().includes(searchTerm) ||
+    c.college.toLowerCase().includes(searchTerm) ||
+    c.skills.some((skill) =>
+      skill.toLowerCase().includes(searchTerm)
+    );
+
+  const matchesScore =
+    c.aiScore >= minScore;
+
+  return matchesSearch && matchesScore;
+});
+  
+const handleAction = async (
+  applicationId,
+  status
+) => {
+  const result =
+    await updateIndustryApplicationStatus(
+      applicationId,
+      status
+    );
+
+  if (!result?.success) {
+    alert(
+      result?.message ||
+      "Unable to update application."
+    );
+    return;
+  }
+
+  if (
+    selectedCandidate &&
+    selectedCandidate.id === applicationId
+  ) {
+    setSelectedCandidate({
+      ...selectedCandidate,
+      status
+    });
+  }
+};
   return (
     <div className="space-y-8 animate-fadeIn max-w-6xl mx-auto">
       
@@ -86,7 +178,22 @@ export const CandidateFinder = () => {
 
       {/* Candidate Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredCandidates.map((cand) => (
+
+  {filteredCandidates.length === 0 && (
+    <div className="md:col-span-2 p-10 rounded-3xl bg-white/80 dark:bg-slate-900/80 border border-dashed border-slate-300 dark:border-slate-700 text-center">
+      <UserCheck className="w-10 h-10 mx-auto text-slate-400 mb-3" />
+
+      <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+        No applicants yet
+      </h3>
+
+      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        Students who apply to your opportunities will appear here.
+      </p>
+    </div>
+  )}
+
+  {filteredCandidates.map((cand) => (
           <div
             key={cand.id}
             className="p-6 rounded-3xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:border-brand-500/50 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
@@ -108,8 +215,8 @@ export const CandidateFinder = () => {
                         {cand.matchPercentage}% Fit
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                      {cand.college} • {cand.department}
+                    <p className="text-[11px] text-brand-600 dark:text-brand-400 font-semibold mt-1">
+                       Applied for: {cand.opportunityTitle}
                     </p>
                   </div>
                 </div>

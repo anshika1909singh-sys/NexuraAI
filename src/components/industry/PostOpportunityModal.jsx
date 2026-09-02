@@ -26,12 +26,20 @@ export const PostOpportunityModal = ({ isOpen, onClose }) => {
     e.preventDefault();
     const skills = formData.skillsStr.split(',').map((s) => s.trim()).filter(Boolean);
     const newOpp = {
-      ...formData,
-      company: currentUser?.company || 'CloudScale Technologies AI',
-      postedBy: 'Industry',
-      skills,
-      openings: Number(formData.openings)
-    };
+  ...formData,
+
+  company:
+    currentUser?.company ||
+    'CloudScale Technologies AI',
+
+  postedBy: 'Industry',
+
+  industryId: currentUser?.uid,
+
+  skills,
+
+  openings: Number(formData.openings)
+};
 
     postNewOpportunity(newOpp);
     setSubmitted(true);
