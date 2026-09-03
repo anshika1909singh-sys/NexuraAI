@@ -22,6 +22,13 @@ import {
   saveAssessmentResultToFirestore
 } from "../services/assessmentService";
 
+import {
+  getFdpPrograms,
+  createFdpProgram,
+  applyToFdp
+} from "../services/fdpService";
+
+
 const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
@@ -1083,36 +1090,83 @@ useEffect(() => {
   // ENROLL IN FDP
   // =========================================================
 
-  const enrollInFdp = (
-    fdpId
-  ) => {
+ const enrollInFdp = async (
+  fdpId
+) => {
 
-    setFdpPrograms(
-      (prev) =>
-        prev.map((program) =>
-          program.id === fdpId
-            ? {
-                ...program,
+  if (
+    !currentUser?.uid ||
+    currentUser?.role !== "faculty"
+  ) {
+    return {
+      success: false,
+      message:
+        "Please login as a faculty member."
+    };
+  }
 
-                enrolled:
-                  program.enrolled +
-                  1,
+  try {
 
-                userEnrolled:
-                  true
-              }
-            : program
-        )
+    const result =
+      await applyToFdp({
+        fdpId,
+
+        facultyId:
+          currentUser.uid,
+
+        facultyName:
+          currentUser.name,
+
+        facultyEmail:
+          currentUser.email,
+
+        department:
+          currentUser.department
+      });
+
+    if (result.alreadyApplied) {
+      return {
+        success: false,
+        alreadyApplied: true,
+        message:
+          "You are already registered for this FDP."
+      };
+    }
+
+    setFdpPrograms((prev) =>
+      prev.map((program) =>
+        program.id === fdpId
+          ? {
+              ...program,
+              enrolled:
+                Number(program.enrolled || 0) + 1,
+              userEnrolled: true
+            }
+          : program
+      )
     );
 
     return {
       success: true,
-
       message:
-        "Successfully registered for the Faculty Development Program!"
+        "Successfully registered for the FDP."
     };
-  };
 
+  } catch (error) {
+
+    console.error(
+      "FDP registration error:",
+      error
+    );
+
+    return {
+      success: false,
+      message:
+        error.message ||
+        "Unable to register for FDP."
+    };
+  }
+};
   // =========================================================
   // REGISTER CAMPUS EVENT
   // =========================================================
@@ -1207,6 +1261,103 @@ useEffect(() => {
         )
     );
   };
+  // POST FDP PROGRAM 
+
+  const postFdpProgram = async (
+  newProgram
+) => {
+
+  if (
+    !currentUser?.uid ||
+    currentUser?.role !== "industry"
+  ) {
+    return {
+      success: false,
+      message:
+        "Please login as an industry user."
+    };
+  }
+
+  try {
+
+    const program = {
+      ...newProgram,
+
+      industryId:
+        currentUser.uid,
+
+      sponsor:
+        currentUser.company ||
+        "Industry Partner",
+
+      enrolled: 0,
+
+      status:
+        "Open for Registration"
+    };
+
+    const createdProgram =
+      await createFdpProgram(program);
+
+    setFdpPrograms((prev) => [
+      createdProgram,
+      ...prev
+    ]);
+
+    return {
+      success: true,
+      program: createdProgram
+    };
+
+  } catch (error) {
+
+    console.error(
+      "Error publishing FDP:",
+      error
+    );
+
+    return {
+      success: false,
+      message:
+        error.message ||
+        "Unable to publish FDP."
+    };
+  }
+};
+
+// =========================================================
+// LOAD FDP PROGRAMS FROM FIRESTORE
+// =========================================================
+
+useEffect(() => {
+  const loadFdpPrograms = async () => {
+
+    // Wait until Firebase authentication is ready
+    if (!currentUser?.uid) {
+      setFdpPrograms([]);
+      return;
+    }
+
+    try {
+      const data = await getFdpPrograms();
+
+      console.log("FDP programs loaded from Firestore:", data);
+
+      setFdpPrograms(data);
+
+    } catch (error) {
+      console.error(
+        "Error loading FDP programs:",
+        error
+      );
+
+      setFdpPrograms([]);
+    }
+  };
+
+  loadFdpPrograms();
+
+}, [currentUser?.uid]);
 
   // =========================================================
   // PROVIDER
@@ -1260,7 +1411,10 @@ useEffect(() => {
 
         postCampusEvent,
 
-        updateCandidateStatus
+        updateCandidateStatus,
+
+        postFdpProgram, 
+
       }}
     >
       {children}

@@ -408,10 +408,25 @@ export const FacultyDashboard = ({ activeTab: navActiveTab, setActiveTab: setNav
                     </span>
                   ) : (
                     <button
-                      onClick={() => {
-                        enrollInFdp(fdp.id);
-                        alert(`Successfully registered for ${fdp.title}!`);
-                      }}
+                      onClick={async () => {
+
+  const result =
+    await enrollInFdp(fdp.id);
+
+  if (!result?.success) {
+
+    alert(
+      result?.message ||
+      "Unable to register."
+    );
+
+    return;
+  }
+
+  alert(
+    `Successfully registered for ${fdp.title}!`
+  );
+}}
                       className="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-sm transition-all"
                     >
                       Enroll in FDP

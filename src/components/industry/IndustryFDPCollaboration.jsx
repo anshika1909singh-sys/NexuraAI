@@ -19,9 +19,12 @@ import {
 
 export const IndustryFDPCollaboration = () => {
   const { currentUser } = useAuth();
-  const { fdpPrograms, facultyList } = useData();
+  const {
+  fdpPrograms,
+  facultyList,
+  postFdpProgram
+} = useData();
   const [proposeModalOpen, setProposeModalOpen] = useState(false);
-  const [fdpList, setFdpList] = useState(fdpPrograms);
   const [proposeForm, setProposeForm] = useState({
     title: '',
     duration: '2 Weeks (40 Hours)',
@@ -34,28 +37,62 @@ export const IndustryFDPCollaboration = () => {
     curriculumStr: 'Modern AI Orchestration, RAG Benchmarks, Containerized Labs, Industry Capstone'
   });
 
-  const handleProposeFdp = (e) => {
-    e.preventDefault();
-    const newFdp = {
-      id: 'fdp_' + Date.now(),
-      title: proposeForm.title,
-      sponsor: currentUser?.company || 'CloudScale Technologies AI',
-      mode: proposeForm.mode,
-      duration: proposeForm.duration,
-      dates: proposeForm.dates,
-      stipendGrant: proposeForm.stipendGrant,
-      targetAudience: proposeForm.targetAudience,
-      seats: Number(proposeForm.seats),
-      enrolled: 12,
-      description: proposeForm.description || 'Industry-backed curriculum enhancement and advanced technical training for university professors.',
-      curriculum: proposeForm.curriculumStr.split(',').map((c) => c.trim()).filter(Boolean),
-      status: 'Open for Registration'
-    };
+  const handleProposeFdp = async (e) => {
+  e.preventDefault();
 
-    setFdpList([newFdp, ...fdpList]);
-    setProposeModalOpen(false);
-    alert('FDP Sponsorship & Collaboration Proposal Published to University Faculty!');
+  const newFdp = {
+
+    title:
+      proposeForm.title,
+
+    mode:
+      proposeForm.mode,
+
+    duration:
+      proposeForm.duration,
+
+    dates:
+      proposeForm.dates,
+
+    stipendGrant:
+      proposeForm.stipendGrant,
+
+    targetAudience:
+      proposeForm.targetAudience,
+
+    seats:
+      Number(proposeForm.seats),
+
+    description:
+      proposeForm.description ||
+      "Industry-backed curriculum enhancement and advanced technical training for university professors.",
+
+    curriculum:
+      proposeForm.curriculumStr
+        .split(",")
+        .map((c) => c.trim())
+        .filter(Boolean)
   };
+
+  const result =
+    await postFdpProgram(newFdp);
+
+  if (!result?.success) {
+
+    alert(
+      result?.message ||
+      "Unable to publish FDP."
+    );
+
+    return;
+  }
+
+  setProposeModalOpen(false);
+
+  alert(
+    "FDP published successfully. Faculty can now register."
+  );
+};
 
   return (
     <div className="space-y-8 animate-fadeIn max-w-6xl mx-auto">
@@ -88,7 +125,7 @@ export const IndustryFDPCollaboration = () => {
             <Award className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xl font-bold font-display text-slate-900 dark:text-white">{fdpList.length}</span>
+            <span className="text-xl font-bold font-display text-slate-900 dark:text-white">{fdpPrograms.length}</span>
             <p className="text-xs text-slate-500 dark:text-slate-400">Sponsored Programs Live</p>
           </div>
         </div>
@@ -122,7 +159,7 @@ export const IndustryFDPCollaboration = () => {
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {fdpList.map((fdp) => (
+          {fdpPrograms.map((fdp) => (
             <div
               key={fdp.id}
               className="p-6 rounded-3xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4"
