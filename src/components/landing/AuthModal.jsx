@@ -67,33 +67,72 @@ export const AuthModal = () => {
 
   const roles = userRoles;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError('');
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
 
-    if (isLogin) {
-      const rawEmail = (formData.email || '').trim().toLowerCase();
-      const adminEmail = 'admin@nexura.ai';
-      if (!rawEmail) {
-        setError('Please enter your email address');
-        return;
-      }
+  if (isLogin) {
+    const rawEmail = (formData.email || '').trim().toLowerCase();
+    const adminEmail = 'admin@nexura.ai';
 
-      const email = rawEmail;
-      const roleToLogin = rawEmail === adminEmail ? 'admin' : selectedRole;
-      login(email, formData.password, roleToLogin).then((result) => {
-        if (!result.success) {
-          setError(result.message || 'Unable to sign in');
-        }
-      });
-    } else {
-      if (!formData.name || !formData.email) {
-        setError('Please provide your name and email');
-        return;
-      }
-      signup({ ...formData, role: selectedRole });
+    if (!rawEmail) {
+      setError('Please enter your email address');
+      return;
     }
-  };
+
+    const email = rawEmail;
+    const roleToLogin =
+      rawEmail === adminEmail ? 'admin' : selectedRole;
+
+    const result = await login(
+      email,
+      formData.password,
+      roleToLogin
+    );
+
+    if (!result.success) {
+      setError(
+        result.message || 'Unable to sign in'
+      );
+    }
+
+  } else {
+    if (!formData.name.trim()) {
+      setError('Please enter your full name');
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    if (!formData.password) {
+      setError('Please enter a password');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError(
+        'Password should be at least 6 characters.'
+      );
+      return;
+    }
+
+    const result = await signup({
+      ...formData,
+      name: formData.name.trim(),
+      email: formData.email.trim().toLowerCase(),
+      role: selectedRole
+    });
+
+    if (!result.success) {
+      setError(
+        result.message || 'Unable to create account'
+      );
+    }
+  }
+};
 
   const handleGoogleLogin = async () => {
     setError('');
