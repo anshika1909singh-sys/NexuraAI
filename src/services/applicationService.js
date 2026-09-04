@@ -43,7 +43,7 @@ export const applyToOpportunity = async ({
     studentId,
 
     // Snapshot of student profile
-    studentName: studentName || "Nexura Student",
+    studentName: studentName || "CampusLink Student",
     studentEmail: studentEmail || "",
     studentCollege: studentCollege || "",
     studentDepartment: studentDepartment || "",

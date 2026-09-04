@@ -130,7 +130,7 @@ export const SettingsPage = () => {
         <div className="flex items-center justify-between pt-2">
           <span className="text-xs text-slate-400 flex items-center gap-1.5">
             <Shield className="w-4 h-4 text-brand-500" />
-            All preferences synced securely to your Nexura session.
+            All preferences synced securely to your CampusLink session.
           </span>
           <button
             onClick={handleSave}

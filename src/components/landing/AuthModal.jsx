@@ -110,7 +110,7 @@ export const AuthModal = () => {
     <Modal
       isOpen={authModalOpen}
       onClose={closeAuth}
-      title={isLogin ? 'Welcome Back to Nexura AI' : 'Join the Unified Ecosystem'}
+      title={isLogin ? 'Welcome Back to CampusLink' : 'Join the Unified Ecosystem'}
       maxWidth="max-w-xl"
     >
       <div className="space-y-6">
