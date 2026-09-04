@@ -115,7 +115,7 @@ export const LandingPage = ({ onGetStarted }) => {
 
           {/* Subtitle */}
           <p className="text-base sm:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            Nexura is the unified intelligence platform empowering students with AI skill diagnostics & dynamic roadmaps, recruiters with verified talent radars, universities with placement synergy, and faculty with seamless mentorship.
+            CampusLink is the unified intelligence platform empowering students with AI skill diagnostics & dynamic roadmaps, recruiters with verified talent radars, universities with placement synergy, and faculty with seamless mentorship.
           </p>
 
           {/* Interactive Persona Quick Starters */}
@@ -191,42 +191,6 @@ export const LandingPage = ({ onGetStarted }) => {
               </div>
               <ArrowRight className="w-4 h-4 text-amber-500 group-hover:translate-x-1 transition-transform" />
             </button>
-          </div>
-
-          {/* Quick Metrics Bar */}
-          <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-            <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60 backdrop-blur-sm">
-              <p className="text-2xl sm:text-3xl font-extrabold font-display text-slate-900 dark:text-white">
-                45,000+
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Verified Tech Students
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60 backdrop-blur-sm">
-              <p className="text-2xl sm:text-3xl font-extrabold font-display text-brand-600 dark:text-brand-400">
-                850+
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Active Hiring Companies
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60 backdrop-blur-sm">
-              <p className="text-2xl sm:text-3xl font-extrabold font-display text-emerald-600 dark:text-emerald-400">
-                91.4%
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Average Placement Rate
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60 backdrop-blur-sm">
-              <p className="text-2xl sm:text-3xl font-extrabold font-display text-violet-600 dark:text-violet-400">
-                98.2%
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                AI Skill Match Accuracy
-              </p>
-            </div>
           </div>
         </div>
       </section>
@@ -395,7 +359,7 @@ export const LandingPage = ({ onGetStarted }) => {
               Ready to Bridge the Gap Between Learning and Hiring?
             </h3>
             <p className="text-sm text-brand-100 leading-relaxed">
-              Join thousands of students, professors, placement directors, and global engineering recruiters on Nexura today.
+              Join thousands of students, professors, placement directors, and global engineering recruiters on CampusLink today.
             </p>
             <div className="flex flex-wrap justify-center items-center gap-4 pt-2">
               <button

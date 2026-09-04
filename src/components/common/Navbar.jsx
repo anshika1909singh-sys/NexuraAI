@@ -112,12 +112,15 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               onClick={handleLogoClick}
               className="flex items-center gap-3 group text-left focus:outline-none"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-brand-500/25 group-hover:scale-105 transition-transform duration-200">
-                <Sparkles className="w-5 h-5 text-white animate-pulse-slow" />
+              <div className="w-10 h-10 rounded-xl overflow-hidden bg-white flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                <img
+                  src="/logo.png"
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <span className="text-xl sm:text-2xl font-black tracking-tight font-display text-slate-900 dark:text-white flex items-center gap-1.5">
-                  NEXURA
+                  CampusLink
                   <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 font-bold">
                     AI
                   </span>

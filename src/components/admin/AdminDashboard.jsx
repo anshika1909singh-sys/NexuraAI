@@ -79,7 +79,7 @@ export const AdminDashboard = () => {
             <ShieldCheck className="h-3.5 w-3.5" />
             Platform Admin Access
           </p>
-          <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Nexura Platform Command Center</h2>
+          <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">CampusLink Platform Command Center</h2>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
           Live overview for student, faculty, recruiter, and campus activity.
