@@ -7,6 +7,13 @@ import React, {
 } from "react";
 
 import {
+  CAMPUS_EVENTS,
+  FACULTY_DIRECTORY,
+  GUIDANCE_REQUESTS,
+  CANDIDATE_POOL
+} from "../data/mockData";
+
+import {
   getOpportunities,
   createOpportunity
 } from "../services/opportunityService";
@@ -97,31 +104,38 @@ const updateIndustryApplicationStatus = async (
 
   const [capabilityProjects, setCapabilityProjects] = useState([]);
 
-  // =========================================================
-  // CAMPUS EVENTS
-  // =========================================================
 
-  const [campusEvents, setCampusEvents] = useState([]);
+// =========================================================
+// CAMPUS EVENTS
+// =========================================================
 
-  // =========================================================
-  // GUIDANCE REQUESTS
-  // =========================================================
+const [campusEvents, setCampusEvents] = useState(
+  CAMPUS_EVENTS
+);
+// =========================================================
+// GUIDANCE REQUESTS
+// =========================================================
 
-  const [guidanceRequests, setGuidanceRequests] = useState([]);
-
+const [guidanceRequests, setGuidanceRequests] = useState(
+  GUIDANCE_REQUESTS
+);
   // =========================================================
   // FDP PROGRAMS
   // =========================================================
 
   const [fdpPrograms, setFdpPrograms] = useState([]);
 
-  // =========================================================
-  // CANDIDATE POOL
-  // =========================================================
+// =========================================================
+// CANDIDATE POOL
+// =========================================================
 
-  const [candidatePool, setCandidatePool] = useState([]);
-  const [facultyList] = useState([]);
+const [candidatePool, setCandidatePool] = useState(
+  CANDIDATE_POOL
+);
 
+const [facultyList] = useState(
+  FACULTY_DIRECTORY
+);
   // =========================================================
   // ASSESSMENT RESULT
   // =========================================================
@@ -153,10 +167,10 @@ const updateIndustryApplicationStatus = async (
     setApplications([]);
     setIndustryApplications([]);
     setCapabilityProjects([]);
-    setCampusEvents([]);
-    setGuidanceRequests([]);
+    setCampusEvents(CAMPUS_EVENTS);
+    setGuidanceRequests(GUIDANCE_REQUESTS);
     setFdpPrograms([]);
-    setCandidatePool([]);
+    setCandidatePool(CANDIDATE_POOL);
     setAssessmentResult({
       taken: false,
       score: 0,
