@@ -44,7 +44,7 @@ export const CertificateModal = ({ isOpen, onClose, certificateData }) => {
               </div>
               <div>
                 <h4 className="text-xl font-bold tracking-wider font-display uppercase text-amber-300">
-                  CAMPUSLINK ECOSYSTEM
+                  NEXORA ECOSYSTEM
                 </h4>
                 <p className="text-xs text-slate-300 tracking-widest uppercase">
                   Unified Academia-Industry Synergy Credential

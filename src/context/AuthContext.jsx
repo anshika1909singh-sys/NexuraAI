@@ -220,7 +220,7 @@ export const AuthProvider = ({ children }) => {
 
         return {
           success: false,
-          message: "CampusLink profile not found.",
+          message: "Nexora profile not found.",
         };
       }
 
@@ -329,7 +329,7 @@ export const AuthProvider = ({ children }) => {
          * Create Nexura profile.
          */
         profile = {
-          name: firebaseUser.displayName || "CampusLink User",
+          name: firebaseUser.displayName || "Nexora User",
           email: firebaseUser.email,
           role: role,
 
@@ -356,7 +356,7 @@ export const AuthProvider = ({ children }) => {
         name:
           profile.name ||
           firebaseUser.displayName ||
-          "CampusLink User",
+          "Nexora User",
         avatar:
           profile.avatar ||
           firebaseUser.photoURL ||

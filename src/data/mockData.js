@@ -78,7 +78,7 @@ export const INITIAL_USERS = {
     role: 'admin',
     email: 'admin@nexura.ai',
     designation: 'System Administrator',
-    college: 'CampusLink Platform',
+    college: 'Nexora Platform',
     location: 'Global Operations Center',
     avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
     bio: 'Full visibility into student, faculty, recruiter, and campus activity across the platform.'

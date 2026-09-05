@@ -118,7 +118,7 @@ export const StudentProfile = () => {
                     </span>
                   </div>
                   <p className="text-xs sm:text-sm text-brand-600 dark:text-brand-400 font-semibold">
-                    {currentUser?.headline || currentUser?.position || currentUser?.designation || (currentUser?.company ? `Recruiter at ${currentUser.company}` : 'CampusLink Member')}
+                    {currentUser?.headline || currentUser?.position || currentUser?.designation || (currentUser?.company ? `Recruiter at ${currentUser.company}` : 'Nexora Member')}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-2">
                     <span>{currentUser?.college || currentUser?.company || 'Apex Institute'}</span>

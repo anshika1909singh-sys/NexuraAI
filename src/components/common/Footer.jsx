@@ -14,7 +14,7 @@ export const Footer = () => {
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-black font-display tracking-tight text-slate-900 dark:text-white">
-                CampusLink
+                Nexora
               </span>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
@@ -26,6 +26,7 @@ export const Footer = () => {
                 All AI Engine Services Operational
               </span>
             </div>
+            
           </div>
         </div>
       </div>

@@ -77,7 +77,7 @@ export const StudentDashboard = ({ setActiveTab }) => {
           <div className="relative max-w-2xl space-y-5">
             <span className="inline-flex items-center gap-2 rounded-full border border-brand-300/30 bg-brand-400/10 px-3 py-1 text-xs font-bold text-brand-200">
               <Sparkles className="h-3.5 w-3.5" />
-              Welcome to CampusLink AI
+              Welcome to Nexora
             </span>
             <h2 className="text-3xl font-extrabold font-display sm:text-4xl">
               Welcome, {currentUser?.name || 'there'}!

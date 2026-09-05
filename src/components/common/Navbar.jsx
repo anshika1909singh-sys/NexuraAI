@@ -120,7 +120,7 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
               </div>
               <div>
                 <span className="text-xl sm:text-2xl font-black tracking-tight font-display text-slate-900 dark:text-white flex items-center gap-1.5">
-                  CampusLink
+                  Nexora
                   <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 font-bold">
                     AI
                   </span>

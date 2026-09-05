@@ -56,7 +56,7 @@ export const CandidateFinder = () => {
 
     name:
       application.studentName ||
-      "CampusLink Student",
+      "Nexora Student",
 
     email:
       application.studentEmail ||

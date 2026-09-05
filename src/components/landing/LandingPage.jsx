@@ -115,7 +115,7 @@ export const LandingPage = ({ onGetStarted }) => {
 
           {/* Subtitle */}
           <p className="text-base sm:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            CampusLink is the unified intelligence platform empowering students with AI skill diagnostics & dynamic roadmaps, recruiters with verified talent radars, universities with placement synergy, and faculty with seamless mentorship.
+            Nexora is the unified intelligence platform empowering students with AI skill diagnostics & dynamic roadmaps, recruiters with verified talent radars, universities with placement synergy, and faculty with seamless mentorship.
           </p>
 
           {/* Interactive Persona Quick Starters */}
@@ -359,7 +359,7 @@ export const LandingPage = ({ onGetStarted }) => {
               Ready to Bridge the Gap Between Learning and Hiring?
             </h3>
             <p className="text-sm text-brand-100 leading-relaxed">
-              Join thousands of students, professors, placement directors, and global engineering recruiters on CampusLink today.
+              Join thousands of students, professors, placement directors, and global engineering recruiters on Nexora today.
             </p>
             <div className="flex flex-wrap justify-center items-center gap-4 pt-2">
               <button
