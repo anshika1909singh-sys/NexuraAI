@@ -20,11 +20,6 @@ import { CandidateFinder } from './components/industry/CandidateFinder';
 import { IndustryPostings } from './components/industry/IndustryPostings';
 import { IndustryFDPCollaboration } from './components/industry/IndustryFDPCollaboration';
 
-// University Views
-import { UniversityDashboard } from './components/university/UniversityDashboard';
-import { UniversityDrives } from './components/university/UniversityDrives';
-import { UniversityAnalytics } from './components/university/UniversityAnalytics';
-
 // Faculty Views
 import { FacultyDashboard } from './components/faculty/FacultyDashboard';
 
@@ -80,21 +75,7 @@ export function App() {
       }
     }
 
-    // University Role Views
-    if (currentRole === 'university') {
-      switch (activeTab) {
-        case 'university_dashboard':
-        case 'dashboard':
-          return <UniversityDashboard setActiveTab={setActiveTab} />;
-        case 'university_drives':
-          return <UniversityDrives setActiveTab={setActiveTab} />;
-        case 'university_analytics':
-          return <UniversityAnalytics setActiveTab={setActiveTab} />;
-        default:
-          return <UniversityDashboard setActiveTab={setActiveTab} />;
-      }
-    }
-
+  
     // Faculty Role Views
     if (currentRole === 'faculty') {
       switch (activeTab) {

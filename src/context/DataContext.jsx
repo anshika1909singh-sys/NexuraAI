@@ -6,12 +6,6 @@ import React, {
   useEffect
 } from "react";
 
-import {
-  CAMPUS_EVENTS,
-  FACULTY_DIRECTORY,
-  GUIDANCE_REQUESTS,
-  CANDIDATE_POOL
-} from "../data/mockData";
 
 import {
   getOpportunities,
@@ -35,6 +29,12 @@ import {
   applyToFdp
 } from "../services/fdpService";
 
+import {
+  createNotification,
+  getUserNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead
+} from "../services/notificationService";
 
 const DataContext = createContext();
 
@@ -52,13 +52,29 @@ export const DataProvider = ({ children }) => {
   // =========================================================
 
   const [applications, setApplications] = useState([]);
-  
-const updateIndustryApplicationStatus = async (
+  const [notifications, setNotifications] = useState([]);
+  const unreadNotificationCount =
+  notifications.filter(
+    (notification) => !notification.read
+  ).length;
+  const updateIndustryApplicationStatus = async (
   applicationId,
   status,
   interviewAt
 ) => {
   try {
+    const application =
+      industryApplications.find(
+        (item) => item.id === applicationId
+      );
+
+    if (!application) {
+      return {
+        success: false,
+        message: "Application not found."
+      };
+    }
+
     const result =
       await updateApplicationStatus(
         applicationId,
@@ -66,19 +82,92 @@ const updateIndustryApplicationStatus = async (
         interviewAt
       );
 
+    if (!result?.success) {
+      return result;
+    }
+
     setIndustryApplications((prev) =>
-      prev.map((application) =>
-        application.id === applicationId
+      prev.map((item) =>
+        item.id === applicationId
           ? {
-              ...application,
+              ...item,
               status,
               ...(interviewAt !== undefined
                 ? { interviewAt }
                 : {})
             }
-          : application
+          : item
       )
     );
+
+    if (application.studentId) {
+      let title =
+        "📢 Application Status Updated";
+
+      let message =
+        `Your application for ${
+          application.opportunityTitle ||
+          "the opportunity"
+        } has been updated to "${status}".`;
+
+      if (status === "Shortlisted") {
+        title = "🎉 Application Shortlisted";
+
+        message =
+          `Great news! Your application for ${
+            application.opportunityTitle ||
+            "the opportunity"
+          } has been shortlisted.`;
+      }
+
+      if (status === "Interview Scheduled") {
+        title = "📅 Interview Scheduled";
+
+        message =
+          `Your interview for ${
+            application.opportunityTitle ||
+            "the opportunity"
+          } has been scheduled.`;
+
+        if (interviewAt) {
+          message += ` Interview time: ${interviewAt}.`;
+        }
+      }
+
+      if (status === "Hired") {
+        title = "🎉 Congratulations — You're Hired!";
+
+        message =
+          `Congratulations! You have been hired for ${
+            application.opportunityTitle ||
+            "the opportunity"
+          }.`;
+      }
+
+      if (status === "Rejected") {
+        title = "Application Status Updated";
+
+        message =
+          `Your application for ${
+            application.opportunityTitle ||
+            "the opportunity"
+          } was not selected at this stage.`;
+      }
+
+      await addNotification({
+        recipientId: application.studentId,
+
+        type: "application_status",
+
+        title,
+
+        message,
+
+        relatedId: applicationId,
+
+        tab: "opportunities"
+      });
+    }
 
     return result;
 
@@ -109,33 +198,18 @@ const updateIndustryApplicationStatus = async (
 // CAMPUS EVENTS
 // =========================================================
 
-const [campusEvents, setCampusEvents] = useState(
-  CAMPUS_EVENTS
-);
-// =========================================================
-// GUIDANCE REQUESTS
-// =========================================================
+const [campusEvents, setCampusEvents] = useState([]);
 
-const [guidanceRequests, setGuidanceRequests] = useState(
-  GUIDANCE_REQUESTS
-);
-  // =========================================================
+const [guidanceRequests, setGuidanceRequests] = useState([]);
+
+const [candidatePool, setCandidatePool] = useState([]);
+
+const [facultyList] = useState([]);  // =========================================================
   // FDP PROGRAMS
   // =========================================================
 
   const [fdpPrograms, setFdpPrograms] = useState([]);
 
-// =========================================================
-// CANDIDATE POOL
-// =========================================================
-
-const [candidatePool, setCandidatePool] = useState(
-  CANDIDATE_POOL
-);
-
-const [facultyList] = useState(
-  FACULTY_DIRECTORY
-);
   // =========================================================
   // ASSESSMENT RESULT
   // =========================================================
@@ -167,10 +241,10 @@ const [facultyList] = useState(
     setApplications([]);
     setIndustryApplications([]);
     setCapabilityProjects([]);
-    setCampusEvents(CAMPUS_EVENTS);
-    setGuidanceRequests(GUIDANCE_REQUESTS);
+    setCampusEvents([]);
+    setGuidanceRequests([]);
     setFdpPrograms([]);
-    setCandidatePool(CANDIDATE_POOL);
+    setCandidatePool([]);
     setAssessmentResult({
       taken: false,
       score: 0,
@@ -209,7 +283,132 @@ const [facultyList] = useState(
 
     loadOpportunities();
   }, []);
-  // =========================================================
+
+useEffect(() => {
+  const loadNotifications = async () => {
+    if (!currentUser?.uid) {
+      setNotifications([]);
+      return;
+    }
+
+    try {
+      const data = await getUserNotifications(
+        currentUser.uid
+      );
+
+      setNotifications(data);
+    } catch (error) {
+      console.error(
+        "Error loading notifications:",
+        error
+      );
+
+      setNotifications([]);
+    }
+  };
+
+  loadNotifications();
+}, [currentUser?.uid]);
+const addNotification = async ({
+  recipientId,
+  type,
+  title,
+  message,
+  relatedId = null,
+  tab = null
+}) => {
+  try {
+    const notification =
+      await createNotification({
+        recipientId,
+        type,
+        title,
+        message,
+        relatedId,
+        tab
+      });
+
+    return {
+      success: true,
+      notification
+    };
+  } catch (error) {
+    console.error(
+      "Notification creation failed:",
+      error
+    );
+
+    return {
+      success: false,
+      message:
+        error.message ||
+        "Unable to create notification."
+    };
+  }
+};
+
+const markNotificationRead = async (
+  notificationId
+) => {
+  try {
+    await markNotificationAsRead(
+      notificationId
+    );
+
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === notificationId
+          ? {
+              ...notification,
+              read: true
+            }
+          : notification
+      )
+    );
+
+    return {
+      success: true
+    };
+  } catch (error) {
+    console.error(
+      "Unable to mark notification as read:",
+      error
+    );
+
+    return {
+      success: false
+    };
+  }
+};
+
+const markAllNotificationsRead = async () => {
+  try {
+    await markAllNotificationsAsRead(
+      notifications
+    );
+
+    setNotifications((prev) =>
+      prev.map((notification) => ({
+        ...notification,
+        read: true
+      }))
+    );
+
+    return {
+      success: true
+    };
+  } catch (error) {
+    console.error(
+      "Unable to mark notifications as read:",
+      error
+    );
+
+    return {
+      success: false
+    };
+  }
+};
+// =========================================================
 // LOAD INDUSTRY APPLICATIONS
 // =========================================================
 
@@ -253,7 +452,7 @@ useEffect(() => {
 
       // Add opportunity information to each application
       const formattedApplications =
-        data.map((application) => {
+        data.map(async (application) => {
 
           const opportunity =
             industryOpportunities.find(
@@ -274,6 +473,24 @@ useEffect(() => {
               currentUser.company ||
               ""
           };
+          if (opportunity?.industryId) {
+         await addNotification({
+    recipientId: opportunity.industryId,
+
+    type: "application_received",
+
+    title: "📩 New Application Received",
+
+    message:
+      `${currentUser.name || "A student"} applied for ${
+        opportunity.title || "your opportunity"
+      }.`,
+
+    relatedId: result.id,
+
+    tab: "industry_candidates"
+  });
+}
         });
 
       setIndustryApplications(
@@ -1428,6 +1645,10 @@ useEffect(() => {
         updateCandidateStatus,
 
         postFdpProgram, 
+        notifications,
+        unreadNotificationCount,
+        markNotificationRead,
+        markAllNotificationsRead,
 
       }}
     >

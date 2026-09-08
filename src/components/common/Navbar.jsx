@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useData } from '../../context/DataContext';
 import {
   Sun,
   Moon,
@@ -10,7 +11,6 @@ import {
   User,
   LogOut,
   Settings,
-  Landmark,
   BookOpenCheck,
   Menu,
   X,
@@ -24,13 +24,19 @@ import {
   BarChart3
 } from 'lucide-react';
 
+
 export const Navbar = ({ activeTab, setActiveTab }) => {
   const { currentUser, currentRole, logout, openAuth } = useAuth();
+  const {
+    notifications,
+    unreadNotificationCount,
+    markNotificationRead,
+    markAllNotificationsRead
+  } = useData();
   const { theme, toggleTheme } = useTheme();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [unreadNotifications, setUnreadNotifications] = useState(true);
 
   const navLinksByRole = {
     student: [
@@ -45,10 +51,6 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
       { id: 'industry_post', label: 'Postings', icon: Briefcase },
       { id: 'industry_fdp', label: 'FDPs', icon: BookOpenCheck },
     ],
-    university: [
-      { id: 'university_drives', label: 'Drives', icon: Landmark },
-      { id: 'university_analytics', label: 'Analytics', icon: BarChart3 },
-    ],
     faculty: [
       { id: 'faculty_mentorship', label: 'Guidance', icon: Users, badge: '3' },
       { id: 'faculty_fdp', label: 'FDPs', icon: BookOpenCheck },
@@ -58,38 +60,9 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     ],
   };
 
-  const roleNotifications = {
-    student: [
-      { id: 1, title: '🎉 CloudScale Technologies Shortlist', desc: 'Your AI Full-Stack application is shortlisted for technical round.', time: '10m ago', tab: 'opportunities' },
-      { id: 2, title: '🏛️ Microsoft On-Campus Drive Published', desc: 'Registration is open for 2026 CS/IT batch.', time: '2h ago', tab: 'campus' },
-      { id: 3, title: '✨ Dynamic Roadmap Milestone Ready', desc: 'New micro-milestone generated for Vector DB embeddings.', time: '1d ago', tab: 'roadmap' }
-    ],
-    industry: [
-      { id: 1, title: '⚡ 4 New AI-Matched Applicants', desc: 'Anshika Sharma (94% Fit) applied for AI Full-Stack Intern.', time: '15m ago', tab: 'industry_candidates' },
-      { id: 2, title: '🏛️ Apex Institute Approved FDP', desc: 'Joint Generative AI faculty program registered 28 professors.', time: '3h ago', tab: 'industry_fdp' },
-      { id: 3, title: '📊 Weekly Talent Pipeline Report', desc: 'Candidate quality score up 14% across engineering colleges.', time: '1d ago', tab: 'industry_dashboard' }
-    ],
-    university: [
-      { id: 1, title: '🏢 Google Campus Program Scheduled', desc: 'Summer Code Sprint & Internship drive approved for Sept 18.', time: '30m ago', tab: 'university_drives' },
-      { id: 2, title: '📈 Department Readiness Up 4.2%', desc: 'AI skill verification completed by 340 IT students.', time: '4h ago', tab: 'university_analytics' },
-      { id: 3, title: '🤝 New Corporate MoU Request', desc: 'KubeMatrix Systems requested campus recruitment slot.', time: '1d ago', tab: 'university_dashboard' }
-    ],
-    faculty: [
-      { id: 1, title: '👨‍🎓 New Guidance Request from Anshika', desc: 'Requested prep review for Microsoft Placement Drive.', time: '20m ago', tab: 'faculty_mentorship' },
-      { id: 2, title: '🏆 FDP Registration Confirmed', desc: 'Enrolled in Google Cloud & NVIDIA LLM Systems FDP with ₹25k Grant.', time: '5h ago', tab: 'faculty_fdp' },
-      { id: 3, title: '✨ Student Capability Project Audited', desc: 'Autonomous Code Reviewer submitted with score 92/100.', time: '1d ago', tab: 'faculty_dashboard' }
-    ]
-  };
+  
 
   const currentNavLinks = currentRole ? navLinksByRole[currentRole] || [] : [];
-  const currentNotifications = currentRole ? roleNotifications[currentRole] || [] : [];
-  const dashboardTabByRole = {
-    student: 'dashboard',
-    industry: 'industry_dashboard',
-    university: 'university_dashboard',
-    faculty: 'faculty_dashboard',
-    admin: 'admin_dashboard',
-  };
 
   const handleLogoClick = () => {
     if (!currentUser) return;
@@ -100,6 +73,33 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
     setActiveTab(dashboardTabByRole[currentRole] || 'dashboard');
     setProfileDropdownOpen(false);
   };
+  const validTabsByRole = {
+  student: [
+    'dashboard',
+    'opportunities',
+    'assessment',
+    'roadmap',
+    'skills',
+    'campus',
+  ],
+
+  industry: [
+    'industry_dashboard',
+    'industry_candidates',
+    'industry_post',
+    'industry_fdp',
+  ],
+
+  faculty: [
+    'faculty_dashboard',
+    'faculty_mentorship',
+    'faculty_fdp',
+  ],
+
+  admin: [
+    'admin_dashboard',
+  ],
+};
 
   return (
     <header className="sticky top-0 z-40 transition-colors bg-white dark:bg-slate-950">
@@ -188,9 +188,13 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                   title="Notifications"
                 >
                   <Bell className="w-4 h-4" />
-                  {unreadNotifications && (
-                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
-                  )}
+                  {unreadNotificationCount > 0 && (
+  <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-brand-500 text-white text-[9px] font-bold flex items-center justify-center">
+    {unreadNotificationCount > 9
+      ? "9+"
+      : unreadNotificationCount}
+  </span>
+)}
                 </button>
 
                 {notificationsOpen && (
@@ -203,10 +207,10 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                         <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
                           <Bell className="w-3.5 h-3.5 text-brand-500" />
-                          Notifications ({currentNotifications.length})
+                          Notifications ({notifications?.length || 0})
                         </span>
                         <button
-                          onClick={() => setUnreadNotifications(false)}
+                          onClick={markAllNotificationsRead}
                           className="text-[10px] text-brand-600 dark:text-brand-400 font-semibold hover:underline"
                         >
                           Mark all read
@@ -214,20 +218,51 @@ export const Navbar = ({ activeTab, setActiveTab }) => {
                       </div>
 
                       <div className="mt-3 space-y-2 text-xs max-h-80 overflow-y-auto">
-                        {currentNotifications.map((notif) => (
+                        {(notifications || []).map((notif) => (
                           <div
                             key={notif.id}
-                            onClick={() => {
-                              if (notif.tab) setActiveTab(notif.tab);
-                              setNotificationsOpen(false);
-                            }}
-                            className="p-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 hover:bg-brand-50/40 dark:hover:bg-brand-950/30 border border-slate-200/50 dark:border-slate-700/50 transition-colors cursor-pointer space-y-0.5"
+                     onClick={async () => {
+  try {
+    if (!notif.read) {
+      await markNotificationRead(notif.id);
+    }
+
+    setNotificationsOpen(false);
+
+    const validTabs =
+      validTabsByRole[currentRole] || [];
+
+    if (
+      notif.tab &&
+      validTabs.includes(notif.tab)
+    ) {
+      setActiveTab(notif.tab);
+    }
+  } catch (error) {
+    console.error(
+      'Error handling notification click:',
+      error
+    );
+  }
+}}
+
+                            className={`p-2.5 rounded-xl border transition-colors cursor-pointer space-y-0.5 ${
+  notif.read
+    ? "bg-slate-50/50 dark:bg-slate-800/20 border-slate-200/40 dark:border-slate-700/40"
+    : "bg-brand-50/50 dark:bg-brand-950/20 border-brand-500/30"
+}`}
                           >
                             <div className="flex items-center justify-between">
                               <p className="font-semibold text-slate-900 dark:text-white text-xs">
                                 {notif.title}
                               </p>
-                              <span className="text-[9px] text-slate-400">{notif.time}</span>
+                              <span className="text-[9px] text-slate-400">
+  {notif.createdAt?.toDate
+    ? notif.createdAt
+        .toDate()
+        .toLocaleString()
+    : "Just now"}
+</span>
                             </div>
                             <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-snug">
                               {notif.desc}

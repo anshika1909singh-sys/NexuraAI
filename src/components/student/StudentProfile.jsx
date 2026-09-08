@@ -16,7 +16,6 @@ import {
   Code2,
   Globe,
   Star,
-  Landmark,
   BookOpenCheck,
   Briefcase
 } from 'lucide-react';
@@ -63,8 +62,6 @@ export const StudentProfile = () => {
     switch (currentRole) {
       case 'industry':
         return { label: 'Verified Corporate Recruiter', icon: Building2, color: 'text-brand-600 dark:text-brand-400 bg-brand-500/10 border-brand-500/20' };
-      case 'university':
-        return { label: 'Accredited University Placement Hub', icon: Landmark, color: 'text-violet-600 dark:text-violet-400 bg-violet-500/10 border-violet-500/20' };
       case 'faculty':
         return { label: 'Certified Academic Research Mentor', icon: BookOpenCheck, color: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20' };
       default:
@@ -307,25 +304,6 @@ export const StudentProfile = () => {
             <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto" />
             <p className="text-2xl font-bold font-display text-slate-900 dark:text-white">18 Hired</p>
             <p className="text-xs text-slate-500 dark:text-slate-400">Campus Candidates Onboarded</p>
-          </div>
-        </div>
-      ) : currentRole === 'university' ? (
-        /* University Profile Stats */
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-6 rounded-3xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 shadow-sm text-center space-y-1">
-            <Landmark className="w-6 h-6 text-violet-500 mx-auto" />
-            <p className="text-2xl font-bold font-display text-slate-900 dark:text-white">91.4%</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">2026 Batch Placement Rate</p>
-          </div>
-          <div className="p-6 rounded-3xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 shadow-sm text-center space-y-1">
-            <Building2 className="w-6 h-6 text-brand-500 mx-auto" />
-            <p className="text-2xl font-bold font-display text-slate-900 dark:text-white">85 MoUs</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Industry Corporate Partners</p>
-          </div>
-          <div className="p-6 rounded-3xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 shadow-sm text-center space-y-1">
-            <GraduationCap className="w-6 h-6 text-emerald-500 mx-auto" />
-            <p className="text-2xl font-bold font-display text-slate-900 dark:text-white">1,450</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Assessed Student Talent</p>
           </div>
         </div>
       ) : (

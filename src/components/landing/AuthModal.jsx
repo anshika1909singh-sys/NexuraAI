@@ -4,7 +4,6 @@ import { Modal } from '../common/Modal';
 import {
   GraduationCap,
   Building2,
-  Landmark,
   BookOpenCheck,
   ArrowRight,
   Check,
@@ -64,14 +63,6 @@ export const AuthModal = () => {
       icon: Building2,
       color:
         'border-brand-500/40 bg-brand-500/10 text-brand-600 dark:text-brand-400'
-    },
-    {
-      id: 'university',
-      label: 'University / Campus',
-      desc: 'On-Campus Drives & Analytics',
-      icon: Landmark,
-      color:
-        'border-violet-500/40 bg-violet-500/10 text-violet-600 dark:text-violet-400'
     },
     {
       id: 'faculty',
@@ -341,8 +332,6 @@ export const AuthModal = () => {
                   ? 'anshika.sharma@apex.edu'
                   : selectedRole === 'industry'
                   ? 'recruiter@cloudscale.tech'
-                  : selectedRole === 'university'
-                  ? 'placements@apex.edu'
                   : 'faculty@apex.edu'
               }
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"

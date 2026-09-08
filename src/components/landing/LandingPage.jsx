@@ -4,7 +4,6 @@ import {
   Sparkles,
   GraduationCap,
   Building2,
-  Landmark,
   BookOpenCheck,
   ArrowRight,
   ShieldCheck,
@@ -155,25 +154,7 @@ export const LandingPage = ({ onGetStarted }) => {
               </div>
               <ArrowRight className="w-4 h-4 text-brand-500 group-hover:translate-x-1 transition-transform" />
             </button>
-
-            <button
-              onClick={() => handleRoleQuickStart('university')}
-              className="group flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-violet-500/30 hover:border-violet-500 shadow-md hover:shadow-violet-500/20 transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 cursor-pointer"
-            >
-              <div className="p-2 rounded-xl bg-violet-500/10 text-violet-500">
-                <Landmark className="w-5 h-5" />
-              </div>
-              <div className="text-left">
-                <div className="text-xs font-extrabold text-slate-900 dark:text-white group-hover:text-violet-500 transition-colors">
-                  University / College
-                </div>
-                <div className="text-[10px] text-slate-400">
-                  Campus Drives & Stats
-                </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-violet-500 group-hover:translate-x-1 transition-transform" />
-            </button>
-
+            
             <button
               onClick={() => handleRoleQuickStart('faculty')}
               className="group flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-amber-500/30 hover:border-amber-500 shadow-md hover:shadow-amber-500/20 transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 cursor-pointer"
@@ -211,7 +192,6 @@ export const LandingPage = ({ onGetStarted }) => {
           {[
             { id: 'student', label: 'Students', icon: GraduationCap },
             { id: 'industry', label: 'Industry Recruiters', icon: Building2 },
-            { id: 'university', label: 'University Placement', icon: Landmark },
             { id: 'faculty', label: 'Faculty & Mentors', icon: BookOpenCheck },
           ].map((tab) => {
             const Icon = tab.icon;
