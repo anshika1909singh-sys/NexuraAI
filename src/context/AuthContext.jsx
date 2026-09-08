@@ -135,22 +135,27 @@ export const AuthProvider = ({ children }) => {
        * Create Nexura profile in Firestore.
        */
       const userProfile = {
-        name: formData.name,
-        email: formData.email,
-        role: role,
+  name: formData.name,
+  email: formData.email,
+  role: role,
 
-        college: formData.college || "",
-        company: formData.company || "",
-        department: formData.department || "",
+  college: formData.college || "",
+  company: formData.company || "",
+  department: formData.department || "",
 
-        avatar: null,
+  // Student academic information
+  course: formData.course || "",
+  branch: formData.branch || "",
+  year: formData.year || "",
 
-        authProvider: "password",
+  avatar: null,
 
-        isActive: true,
+  authProvider: "password",
 
-        createdAt: serverTimestamp(),
-      };
+  isActive: true,
+
+  createdAt: serverTimestamp(),
+};
 
       await setDoc(
         doc(db, "users", firebaseUser.uid),
