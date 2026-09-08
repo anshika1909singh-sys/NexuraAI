@@ -14,6 +14,9 @@ export const AuthModal = () => {
     college: '',
     company: '',
     department: '',
+    course: '',
+    branch: '',
+    year: '',
   });
   const [error, setError] = useState('');
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -68,71 +71,97 @@ export const AuthModal = () => {
   const roles = userRoles;
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
+    e.preventDefault();
+    setError('');
 
-  if (isLogin) {
-    const rawEmail = (formData.email || '').trim().toLowerCase();
-    const adminEmail = 'admin@nexura.ai';
+    if (isLogin) {
+      const rawEmail = (formData.email || '').trim().toLowerCase();
+      const adminEmail = 'admin@nexura.ai';
 
-    if (!rawEmail) {
-      setError('Please enter your email address');
-      return;
-    }
+      if (!rawEmail) {
+        setError('Please enter your email address');
+        return;
+      }
 
-    const email = rawEmail;
-    const roleToLogin =
-      rawEmail === adminEmail ? 'admin' : selectedRole;
+      const email = rawEmail;
+      const roleToLogin =
+        rawEmail === adminEmail ? 'admin' : selectedRole;
 
-    const result = await login(
-      email,
-      formData.password,
-      roleToLogin
-    );
-
-    if (!result.success) {
-      setError(
-        result.message || 'Unable to sign in'
+      const result = await login(
+        email,
+        formData.password,
+        roleToLogin
       );
-    }
 
-  } else {
-    if (!formData.name.trim()) {
-      setError('Please enter your full name');
-      return;
-    }
+      if (!result.success) {
+        setError(
+          result.message || 'Unable to sign in'
+        );
+      }
 
-    if (!formData.email.trim()) {
-      setError('Please enter your email address');
-      return;
-    }
+    } else {
+      if (!formData.name.trim()) {
+        setError('Please enter your full name');
+        return;
+      }
 
-    if (!formData.password) {
-      setError('Please enter a password');
-      return;
-    }
+      if (!formData.email.trim()) {
+        setError('Please enter your email address');
+        return;
+      }
 
-    if (formData.password.length < 6) {
-      setError(
-        'Password should be at least 6 characters.'
-      );
-      return;
-    }
+      if (!formData.password) {
+        setError('Please enter a password');
+        return;
+      }
 
-    const result = await signup({
-      ...formData,
-      name: formData.name.trim(),
-      email: formData.email.trim().toLowerCase(),
-      role: selectedRole
-    });
+      if (formData.password.length < 6) {
+        setError(
+          'Password should be at least 6 characters.'
+        );
+        return;
+      }
 
-    if (!result.success) {
-      setError(
-        result.message || 'Unable to create account'
-      );
+      if (selectedRole === 'student') {
+        if (!formData.college.trim()) {
+          setError('Please enter your university / college name');
+          return;
+        }
+
+        if (!formData.course.trim()) {
+          setError('Please enter your course');
+          return;
+        }
+
+        if (!formData.branch.trim()) {
+          setError('Please enter your branch / specialization');
+          return;
+        }
+
+        if (!formData.year) {
+          setError('Please select your current year');
+          return;
+        }
+      }
+
+      const result = await signup({
+        ...formData,
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        college: formData.college.trim(),
+        course: formData.course.trim(),
+        branch: formData.branch.trim(),
+        year: formData.year,
+        role: selectedRole
+      });
+
+      if (!result.success) {
+        setError(
+          result.message || 'Unable to create account'
+        );
+      }
     }
-  }
-};
+  };
 
   const handleGoogleLogin = async () => {
     setError('');
@@ -280,22 +309,77 @@ export const AuthModal = () => {
           </div>
 
           {!isLogin && (
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {selectedRole === 'industry' ? 'Company / Organization Name' : 'University / College Name'}
-              </label>
-              <input
-                type="text"
-                value={selectedRole === 'industry' ? formData.company : formData.college}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    [selectedRole === 'industry' ? 'company' : 'college']: e.target.value
-                  })
-                }
-                placeholder={selectedRole === 'industry' ? 'e.g. CloudScale Technologies' : 'e.g. Apex Institute of Technology'}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
-              />
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {selectedRole === 'industry' ? 'Company / Organization Name' : 'University / College Name'}
+                </label>
+                <input
+                  type="text"
+                  required={selectedRole === 'student' || selectedRole === 'faculty' || selectedRole === 'university'}
+                  value={selectedRole === 'industry' ? formData.company : formData.college}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      [selectedRole === 'industry' ? 'company' : 'college']: e.target.value
+                    })
+                  }
+                  placeholder={selectedRole === 'industry' ? 'e.g. CloudScale Technologies' : 'e.g. Apex Institute of Technology'}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                />
+              </div>
+
+              {selectedRole === 'student' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Course / Degree
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.course}
+                      onChange={(e) => setFormData({ ...formData, course: e.target.value })}
+                      placeholder="e.g. B.Tech"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Branch / Specialization
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.branch}
+                      onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                      placeholder="e.g. CSE & AI"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Current Year
+                    </label>
+                    <select
+                      required
+                      value={formData.year}
+                      onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                    >
+                      <option value="">Select your current year</option>
+                      <option value="1st Year">1st Year</option>
+                      <option value="2nd Year">2nd Year</option>
+                      <option value="3rd Year">3rd Year</option>
+                      <option value="4th Year">4th Year</option>
+                      <option value="5th Year">5th Year</option>
+                      <option value="Final Year">Final Year</option>
+                    </select>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -303,7 +387,7 @@ export const AuthModal = () => {
             type="submit"
             className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-500/25 transition-all hover:scale-[1.01]"
           >
-            <span>{isLogin ? `Continue as ${selectedRole}` : `Create ${selectedRole} Account`}</span>
+            <span>{isLogin ? `Continue as ${selectedRole}` : 'Create Account'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
