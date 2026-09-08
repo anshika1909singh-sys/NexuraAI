@@ -91,11 +91,20 @@ export const AuthModal = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    e.preventDefault();
+    setError('');
 
     if (isLogin) {
       const rawEmail = (formData.email || '').trim().toLowerCase();
       const adminEmail = 'admin@nexura.ai';
+    if (isLogin) {
+      const rawEmail = (formData.email || '').trim().toLowerCase();
+      const adminEmail = 'admin@nexura.ai';
 
+      if (!rawEmail) {
+        setError('Please enter your email address');
+        return;
+      }
       if (!rawEmail) {
         setError('Please enter your email address');
         return;
@@ -106,6 +115,11 @@ export const AuthModal = () => {
       const roleToLogin =
         rawEmail === adminEmail ? 'admin' : selectedRole;
 
+      const result = await login(
+        email,
+        formData.password,
+        roleToLogin
+      );
       const result = await login(
         email,
         formData.password,
@@ -125,7 +139,15 @@ export const AuthModal = () => {
         setError('Please enter your email address');
         return;
       }
+      if (!formData.email.trim()) {
+        setError('Please enter your email address');
+        return;
+      }
 
+      if (!formData.password) {
+        setError('Please enter a password');
+        return;
+      }
       if (!formData.password) {
         setError('Please enter a password');
         return;
@@ -165,6 +187,13 @@ export const AuthModal = () => {
         role: selectedRole
       });
 
+      if (!result.success) {
+        setError(
+          result.message || 'Unable to create account'
+        );
+      }
+    }
+  };
       if (!result.success) {
         setError(
           result.message || 'Unable to create account'
