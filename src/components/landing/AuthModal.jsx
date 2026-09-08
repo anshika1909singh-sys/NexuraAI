@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../common/Modal';
+
 import {
   GraduationCap,
   Building2,
@@ -22,7 +23,14 @@ export const AuthModal = () => {
     loginWithGoogle
   } = useAuth();
 
-  const [isLogin, setIsLogin] = useState(authModalMode === 'login');
+  // =========================================================
+  // STATE
+  // =========================================================
+
+  const [isLogin, setIsLogin] = useState(
+    authModalMode === 'login'
+  );
+
   const [selectedRole, setSelectedRole] = useState(
     authModalRole || 'student'
   );
@@ -42,10 +50,19 @@ export const AuthModal = () => {
   const [error, setError] = useState('');
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  React.useEffect(() => {
+  // =========================================================
+  // SYNC MODAL STATE WITH AUTH CONTEXT
+  // =========================================================
+
+  useEffect(() => {
     setIsLogin(authModalMode === 'login');
     setSelectedRole(authModalRole || 'student');
+    setError('');
   }, [authModalMode, authModalRole]);
+
+  // =========================================================
+  // AVAILABLE USER ROLES
+  // =========================================================
 
   const userRoles = [
     {
@@ -86,42 +103,41 @@ export const AuthModal = () => {
     }
   ];
 
-  const roles = userRoles;
+  // Admin should only be selectable during login.
+  const roles = isLogin ? loginRoles : userRoles;
+
+  // =========================================================
+  // FORM SUBMISSION
+  // =========================================================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    e.preventDefault();
-    setError('');
+
+    // -------------------------------------------------------
+    // LOGIN
+    // -------------------------------------------------------
 
     if (isLogin) {
       const rawEmail = (formData.email || '').trim().toLowerCase();
-      const adminEmail = 'admin@nexura.ai';
-    if (isLogin) {
-      const rawEmail = (formData.email || '').trim().toLowerCase();
+
       const adminEmail = 'admin@nexura.ai';
 
       if (!rawEmail) {
         setError('Please enter your email address');
         return;
       }
-      if (!rawEmail) {
-        setError('Please enter your email address');
+
+      if (!formData.password) {
+        setError('Please enter your password');
         return;
       }
-
-      const email = rawEmail;
 
       const roleToLogin =
         rawEmail === adminEmail ? 'admin' : selectedRole;
 
       const result = await login(
-        email,
-        formData.password,
-        roleToLogin
-      );
-      const result = await login(
-        email,
+        rawEmail,
         formData.password,
         roleToLogin
       );
@@ -129,93 +145,161 @@ export const AuthModal = () => {
       if (!result.success) {
         setError(result.message || 'Unable to sign in');
       }
-    } else {
-      if (!formData.name.trim()) {
-        setError('Please enter your full name');
+
+      return;
+    }
+
+    // -------------------------------------------------------
+    // SIGNUP
+    // -------------------------------------------------------
+
+    if (!formData.name.trim()) {
+      setError('Please enter your full name');
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    if (!formData.password) {
+      setError('Please enter a password');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password should be at least 6 characters.');
+      return;
+    }
+
+    // -------------------------------------------------------
+    // STUDENT VALIDATION
+    // -------------------------------------------------------
+
+    if (selectedRole === 'student') {
+      if (!formData.college.trim()) {
+        setError('Please enter your university / college name');
         return;
       }
 
-      if (!formData.email.trim()) {
-        setError('Please enter your email address');
-        return;
-      }
-      if (!formData.email.trim()) {
-        setError('Please enter your email address');
+      if (!formData.course.trim()) {
+        setError('Please enter your course / degree');
         return;
       }
 
-      if (!formData.password) {
-        setError('Please enter a password');
-        return;
-      }
-      if (!formData.password) {
-        setError('Please enter a password');
+      if (!formData.branch.trim()) {
+        setError('Please enter your branch / specialization');
         return;
       }
 
-      if (formData.password.length < 6) {
-        setError('Password should be at least 6 characters.');
+      if (!formData.year) {
+        setError('Please select your current year');
         return;
-      }
-
-      if (selectedRole === 'student') {
-        if (!formData.college.trim()) {
-          setError('Please enter your university / college name');
-          return;
-        }
-
-        if (!formData.course.trim()) {
-          setError('Please enter your course / degree');
-          return;
-        }
-
-        if (!formData.branch.trim()) {
-          setError('Please enter your branch / specialization');
-          return;
-        }
-
-        if (!formData.year) {
-          setError('Please select your current year');
-          return;
-        }
-      }
-
-      const result = await signup({
-        ...formData,
-        name: formData.name.trim(),
-        email: formData.email.trim().toLowerCase(),
-        role: selectedRole
-      });
-
-      if (!result.success) {
-        setError(
-          result.message || 'Unable to create account'
-        );
       }
     }
-  };
-      if (!result.success) {
-        setError(
-          result.message || 'Unable to create account'
-        );
+
+    // -------------------------------------------------------
+    // INDUSTRY VALIDATION
+    // -------------------------------------------------------
+
+    if (selectedRole === 'industry') {
+      if (!formData.company.trim()) {
+        setError('Please enter your company / organization name');
+        return;
       }
     }
+
+    // -------------------------------------------------------
+    // FACULTY VALIDATION
+    // -------------------------------------------------------
+
+    if (selectedRole === 'faculty') {
+      if (!formData.college.trim()) {
+        setError('Please enter your university / college name');
+        return;
+      }
+
+      if (!formData.department.trim()) {
+        setError('Please enter your department');
+        return;
+      }
+    }
+
+    // -------------------------------------------------------
+    // CREATE ACCOUNT
+    // -------------------------------------------------------
+
+    const result = await signup({
+      ...formData,
+      name: formData.name.trim(),
+      email: formData.email.trim().toLowerCase(),
+      college: formData.college.trim(),
+      company: formData.company.trim(),
+      department: formData.department.trim(),
+      course: formData.course.trim(),
+      branch: formData.branch.trim(),
+      year: formData.year,
+      role: selectedRole
+    });
+
+    if (!result.success) {
+      setError(
+        result.message || 'Unable to create account'
+      );
+    }
   };
+
+  // =========================================================
+  // GOOGLE AUTHENTICATION
+  // =========================================================
 
   const handleGoogleLogin = async () => {
     setError('');
     setIsGoogleLoading(true);
 
-    const result = await loginWithGoogle(selectedRole);
+    try {
+      const result = await loginWithGoogle(selectedRole);
 
-    setIsGoogleLoading(false);
+      if (!result.success) {
+        setError(
+          result.message || 'Google authentication failed'
+        );
+      }
+    } catch (err) {
+      console.error('Google authentication error:', err);
 
-    if (!result.success) {
       setError(
-        result.message || 'Google authentication failed'
+        err.message || 'Google authentication failed'
       );
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
+
+  // =========================================================
+  // ROLE CHANGE
+  // =========================================================
+
+  const handleRoleChange = (roleId) => {
+    setSelectedRole(roleId);
+    setError('');
+  };
+
+  // =========================================================
+  // INPUT CHANGE
+  // =========================================================
+
+  const handleInputChange = (field, value) => {
+    setFormData((previous) => ({
+      ...previous,
+      [field]: value
+    }));
+  };
+
+  // =========================================================
+  // RENDER
+  // =========================================================
 
   return (
     <Modal
@@ -230,11 +314,18 @@ export const AuthModal = () => {
     >
       <div className="space-y-6">
 
-        {/* Toggle Mode */}
+        {/* =================================================
+            TOGGLE LOGIN / SIGNUP
+        ================================================== */}
+
         <div className="flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
+
           <button
             type="button"
-            onClick={() => setIsLogin(true)}
+            onClick={() => {
+              setIsLogin(true);
+              setError('');
+            }}
             className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
               isLogin
                 ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm'
@@ -246,7 +337,11 @@ export const AuthModal = () => {
 
           <button
             type="button"
-            onClick={() => setIsLogin(false)}
+            onClick={() => {
+              setIsLogin(false);
+              setSelectedRole('student');
+              setError('');
+            }}
             className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
               !isLogin
                 ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm'
@@ -255,29 +350,35 @@ export const AuthModal = () => {
           >
             Create New Account
           </button>
+
         </div>
 
-        {/* Select Role Header */}
+        {/* =================================================
+            ROLE SELECTION
+        ================================================== */}
+
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
             Select Your Ecosystem Role
           </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {(isLogin ? loginRoles : roles).map((role) => {
+
+            {roles.map((role) => {
               const Icon = role.icon;
               const isSelected = selectedRole === role.id;
 
               return (
                 <div
                   key={role.id}
-                  onClick={() => setSelectedRole(role.id)}
+                  onClick={() => handleRoleChange(role.id)}
                   className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
                     isSelected
                       ? 'border-brand-500 bg-brand-50/60 dark:bg-brand-950/40 ring-2 ring-brand-500/20'
                       : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50'
                   }`}
                 >
+
                   <div
                     className={`p-2 rounded-lg border shrink-0 ${role.color}`}
                   >
@@ -285,7 +386,9 @@ export const AuthModal = () => {
                   </div>
 
                   <div className="flex-1 min-w-0">
+
                     <div className="flex items-center justify-between">
+
                       <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
                         {role.label}
                       </p>
@@ -293,31 +396,45 @@ export const AuthModal = () => {
                       {isSelected && (
                         <Check className="w-3.5 h-3.5 text-brand-500 shrink-0" />
                       )}
+
                     </div>
 
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
                       {role.desc}
                     </p>
+
                   </div>
+
                 </div>
               );
             })}
+
           </div>
         </div>
 
-        {/* Error Message */}
+        {/* =================================================
+            ERROR MESSAGE
+        ================================================== */}
+
         {error && (
           <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-medium">
             {error}
           </div>
         )}
 
-        {/* Form Fields */}
+        {/* =================================================
+            FORM
+        ================================================== */}
+
         <form
           onSubmit={handleSubmit}
           className="space-y-4"
         >
-          {/* Full Name */}
+
+          {/* =================================================
+              FULL NAME
+          ================================================== */}
+
           {!isLogin && (
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -329,10 +446,7 @@ export const AuthModal = () => {
                 required
                 value={formData.name}
                 onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    name: e.target.value
-                  })
+                  handleInputChange('name', e.target.value)
                 }
                 placeholder="e.g. Anshika Sharma"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
@@ -340,7 +454,10 @@ export const AuthModal = () => {
             </div>
           )}
 
-          {/* Email */}
+          {/* =================================================
+              EMAIL
+          ================================================== */}
+
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Email Address
@@ -351,23 +468,25 @@ export const AuthModal = () => {
               required
               value={formData.email}
               onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  email: e.target.value
-                })
+                handleInputChange('email', e.target.value)
               }
               placeholder={
                 selectedRole === 'student'
                   ? 'anshika.sharma@apex.edu'
                   : selectedRole === 'industry'
-                  ? 'recruiter@cloudscale.tech'
-                  : 'faculty@apex.edu'
+                    ? 'recruiter@cloudscale.tech'
+                    : selectedRole === 'faculty'
+                      ? 'faculty@apex.edu'
+                      : 'admin@nexura.ai'
               }
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
             />
           </div>
 
-          {/* Password */}
+          {/* =================================================
+              PASSWORD
+          ================================================== */}
+
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Password
@@ -378,21 +497,24 @@ export const AuthModal = () => {
               required
               value={formData.password}
               onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  password: e.target.value
-                })
+                handleInputChange('password', e.target.value)
               }
               placeholder="••••••••••••"
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
             />
           </div>
 
-          {/* Signup-only fields */}
+          {/* =================================================
+              SIGNUP-ONLY FIELDS
+          ================================================== */}
+
           {!isLogin && (
             <div className="space-y-4">
 
-              {/* University / Company */}
+              {/* =================================================
+                  UNIVERSITY / COMPANY
+              ================================================== */}
+
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   {selectedRole === 'industry'
@@ -402,18 +524,19 @@ export const AuthModal = () => {
 
                 <input
                   type="text"
+                  required
                   value={
                     selectedRole === 'industry'
                       ? formData.company
                       : formData.college
                   }
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      [selectedRole === 'industry'
+                    handleInputChange(
+                      selectedRole === 'industry'
                         ? 'company'
-                        : 'college']: e.target.value
-                    })
+                        : 'college',
+                      e.target.value
+                    )
                   }
                   placeholder={
                     selectedRole === 'industry'
@@ -424,14 +547,17 @@ export const AuthModal = () => {
                 />
               </div>
 
-              {/* Student-specific fields */}
+              {/* =================================================
+                  STUDENT FIELDS
+              ================================================== */}
+
               {selectedRole === 'student' && (
                 <div className="space-y-4">
 
                   {/* Course + Branch */}
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                    {/* Course */}
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                         Course / Degree
@@ -442,17 +568,16 @@ export const AuthModal = () => {
                         required
                         value={formData.course}
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            course: e.target.value
-                          })
+                          handleInputChange(
+                            'course',
+                            e.target.value
+                          )
                         }
                         placeholder="e.g. B.Tech"
                         className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
                       />
                     </div>
 
-                    {/* Branch */}
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                         Branch / Specialization
@@ -463,10 +588,10 @@ export const AuthModal = () => {
                         required
                         value={formData.branch}
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            branch: e.target.value
-                          })
+                          handleInputChange(
+                            'branch',
+                            e.target.value
+                          )
                         }
                         placeholder="e.g. CSE & AI"
                         className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
@@ -476,6 +601,7 @@ export const AuthModal = () => {
                   </div>
 
                   {/* Current Year */}
+
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Current Year
@@ -485,10 +611,10 @@ export const AuthModal = () => {
                       required
                       value={formData.year}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          year: e.target.value
-                        })
+                        handleInputChange(
+                          'year',
+                          e.target.value
+                        )
                       }
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
                     >
@@ -496,22 +622,68 @@ export const AuthModal = () => {
                         Select your current year
                       </option>
 
-                      <option value="1st Year">1st Year</option>
-                      <option value="2nd Year">2nd Year</option>
-                      <option value="3rd Year">3rd Year</option>
-                      <option value="4th Year">4th Year</option>
-                      <option value="5th Year">5th Year</option>
-                      <option value="Final Year">Final Year</option>
+                      <option value="1st Year">
+                        1st Year
+                      </option>
+
+                      <option value="2nd Year">
+                        2nd Year
+                      </option>
+
+                      <option value="3rd Year">
+                        3rd Year
+                      </option>
+
+                      <option value="4th Year">
+                        4th Year
+                      </option>
+
+                      <option value="5th Year">
+                        5th Year
+                      </option>
+
+                      <option value="Final Year">
+                        Final Year
+                      </option>
                     </select>
                   </div>
 
                 </div>
               )}
 
+              {/* =================================================
+                  FACULTY FIELDS
+              ================================================== */}
+
+              {selectedRole === 'faculty' && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Department
+                  </label>
+
+                  <input
+                    type="text"
+                    required
+                    value={formData.department}
+                    onChange={(e) =>
+                      handleInputChange(
+                        'department',
+                        e.target.value
+                      )
+                    }
+                    placeholder="e.g. Computer Science & Engineering"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                  />
+                </div>
+              )}
+
             </div>
           )}
 
-          {/* Submit Button */}
+          {/* =================================================
+              SUBMIT BUTTON
+          ================================================== */}
+
           <button
             type="submit"
             className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-500/25 transition-all hover:scale-[1.01]"
@@ -524,9 +696,13 @@ export const AuthModal = () => {
 
             <ArrowRight className="w-4 h-4" />
           </button>
+
         </form>
 
-        {/* Google Login Button */}
+        {/* =================================================
+            GOOGLE AUTHENTICATION
+        ================================================== */}
+
         <button
           type="button"
           onClick={handleGoogleLogin}
